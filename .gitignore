@@ -1,0 +1,12 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+.vs/
+.serverless/
+
+*.ps1
+*.rep
+
+node_modules/*
+obj/*
+bin/*
+*.csproj.user
