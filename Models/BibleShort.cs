@@ -24,14 +24,14 @@
 */
     public class BibleShort : BaseModel
     {
-        public BibleShort(Bible bible, Audio[] audio) { 
-            BibleId = bible.BibleId;
+        public BibleShort(Bible bible, Audio[] audio) {
+            Bible_id = bible.BibleId;
             Iso = bible.Iso;
             Name = bible.BibleName;
             Audio = audio;
         }
-        public string? BibleId { get; set; }
-        public string? Abbr => BibleId?[3..] ?? "";
+        public string? Bible_id { get; set; }
+        public string? Abbr => Bible_id? [3..] ?? "";
         public string? Iso { get; set; }
         public string? Name { get; set; }
         public Audio [] Audio { get; set; } = Array.Empty<Audio>();

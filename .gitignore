@@ -3,6 +3,8 @@
 .vs/
 .serverless/
 
+serverless.env.yml
+
 *.ps1
 *.rep
 
