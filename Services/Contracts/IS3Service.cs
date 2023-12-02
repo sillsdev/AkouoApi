@@ -1,6 +1,6 @@
-﻿using AkoúoApi.Models;
+﻿using AkouoApi.Models;
 
-namespace AkoúoApi.Services
+namespace AkouoApi.Services
 {
     public interface IS3Service
     {

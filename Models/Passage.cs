@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AkoúoApi.Models
+namespace AkouoApi.Models
 {
     public class Passage : BaseModel, IArchive
     {
@@ -20,6 +20,7 @@ namespace AkoúoApi.Models
 
         public string? StepComplete { get; set; } //json
 
+        [ForeignKey(nameof(SharedResource))] 
         public int? SharedResourceId { get; set; }
 
         public Sharedresource? SharedResource { get; set; }

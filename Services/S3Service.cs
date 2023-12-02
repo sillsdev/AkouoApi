@@ -2,11 +2,11 @@
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Amazon.S3.Util;
-using AkoúoApi.Models;
+using AkouoApi.Models;
 using System.Net;
-using static AkoúoApi.Utility.EnvironmentHelpers;
+using static AkouoApi.Utility.EnvironmentHelpers;
 
-namespace AkoúoApi.Services
+namespace AkouoApi.Services
 {
     public class S3WrapperStream : Stream
     {

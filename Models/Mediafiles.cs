@@ -1,8 +1,8 @@
-﻿using AkoúoApi.Services;
+﻿using AkouoApi.Services;
 using System.ComponentModel.DataAnnotations.Schema;
 
 
-namespace AkoúoApi.Models
+namespace AkouoApi.Models
 {
     public partial class Mediafile : BaseModel, IArchive
     {

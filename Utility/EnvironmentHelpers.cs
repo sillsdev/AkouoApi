@@ -1,4 +1,4 @@
-﻿namespace AkoúoApi.Utility
+﻿namespace AkouoApi.Utility
 {
     public static class EnvironmentHelpers
     {

@@ -1,6 +1,6 @@
-﻿using AkoúoApi.Services;
+﻿using AkouoApi.Services;
 
-namespace AkoúoApi.Models;
+namespace AkouoApi.Models;
 
 public class Audio
 {

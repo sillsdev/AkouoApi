@@ -1,4 +1,4 @@
-﻿namespace AkoúoApi.Models
+﻿namespace AkouoApi.Models
 {
     /* 
 { 

@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using AkoúoApi.Data;
-using AkoúoApi.Models;
+using AkouoApi.Data;
+using AkouoApi.Models;
 using System.Net;
 
 
-namespace AkoúoApi.Services
+namespace AkouoApi.Services
 {
     public class MediafileService// : BaseArchiveService<Mediafile>
     {

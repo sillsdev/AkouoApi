@@ -1,7 +1,7 @@
 using Amazon.Lambda.AspNetCoreServer;
 using Amazon.Lambda.Core;
-using AkoúoApi.Models;
-using AkoúoApi.Services;
+using AkouoApi.Models;
+using AkouoApi.Services;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -46,5 +46,9 @@ app.MapGet("/bibles", (string? language_code, ILogger<Program> _logger, BibleSer
 app.MapGet("/bibles/{bibleId}", (string bibleId, ILogger<Program> _logger, BibleService _service) =>
     new ApiResponse(_service.GetBible(bibleId))
 ).WithName("GetBible").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/books", (string bibleId, ILogger<Program> _logger, BibleService _service) =>
+    new ApiResponse(_service.GetBibleBooks(bibleId))
+).WithName("GetBibleBooks").Produces<ApiResponse>(200);
 
 app.Run();

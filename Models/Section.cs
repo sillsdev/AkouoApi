@@ -1,5 +1,7 @@
 ﻿
-namespace AkoúoApi.Models
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AkouoApi.Models
 {
     public class Section : BaseModel, IArchive
     {
@@ -19,6 +21,10 @@ namespace AkoúoApi.Models
         public virtual Plan? Plan { get; set; }
         public bool Published { get; set; }
         public int Level { get; set; }
+        [ForeignKey(nameof(TitleMediafile))]
+        public int? TitleMediafileId { get; set; }
+
+        public Mediafile? TitleMediafile { get; set; }
         public bool Archived { get; set; }
 
     }

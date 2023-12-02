@@ -1,5 +1,5 @@
 ﻿
-namespace AkoúoApi.Models
+namespace AkouoApi.Models
 {
     public partial class Plan : BaseModel, IArchive
     {

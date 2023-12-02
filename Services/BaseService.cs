@@ -1,9 +1,9 @@
-﻿using AkoúoApi.Data;
-using AkoúoApi.Models;
+﻿using AkouoApi.Data;
+using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 
-namespace AkoúoApi.Services;
+namespace AkouoApi.Services;
 
 public class BaseService
 {

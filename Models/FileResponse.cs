@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace AkoúoApi.Models
+namespace AkouoApi.Models
 { /* This is an Identifiable only so that we can pass it back without JsonApiDotNetCore puking on it */
     public class Fileresponse 
     {

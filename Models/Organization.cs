@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AkoúoApi.Models;
+namespace AkouoApi.Models;
 
 public class Organization: BaseModel
 {

@@ -1,6 +1,6 @@
 ﻿using System.IO.IsolatedStorage;
 
-namespace AkoúoApi.Models;
+namespace AkouoApi.Models;
 
 public class Language
 {

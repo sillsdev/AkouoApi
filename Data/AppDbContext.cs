@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore;
-using AkoúoApi.Models;
+using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace AkoúoApi.Data;
+namespace AkouoApi.Data;
 
 public class AppDbContext : DbContext
 {
@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Bible> Bibles => Set<Bible>();
     public DbSet<Mediafile> Mediafiles => Set<Mediafile>();
     public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<Organizationbible> OrganizationBibles => Set<Organizationbible>();
     public DbSet<Passage> Passages => Set<Passage>();
     public DbSet<Passagetype> Passagetypes => Set<Passagetype>();
     public DbSet<Plan> Plans => Set<Plan>();

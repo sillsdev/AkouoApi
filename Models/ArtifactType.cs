@@ -1,5 +1,5 @@
 ﻿
-namespace AkoúoApi.Models
+namespace AkouoApi.Models
 {
     public class Artifacttype : BaseModel, IArchive
     {

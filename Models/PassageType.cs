@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AkoúoApi.Models
+namespace AkouoApi.Models
 {
     public partial class Passagetype : BaseModel
     {

@@ -1,7 +1,7 @@
-﻿using AkoúoApi.Data;
+﻿using AkouoApi.Data;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AkoúoApi.Models;
+namespace AkouoApi.Models;
 
     public class Artifactcategory : BaseModel, IArchive
     {

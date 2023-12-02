@@ -1,9 +1,9 @@
 using Amazon.S3;
-using AkoúoApi.Data;
+using AkouoApi.Data;
 using Microsoft.EntityFrameworkCore;
-using static AkoúoApi.Utility.EnvironmentHelpers;
+using static AkouoApi.Utility.EnvironmentHelpers;
 
-namespace AkoúoApi.Services;
+namespace AkouoApi.Services;
 
     public static class BackendServiceExtension
     {
