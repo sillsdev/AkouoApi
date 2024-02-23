@@ -1,6 +1,4 @@
-﻿using AkouoApi.Models;
-using Newtonsoft.Json.Linq;
-using System.Xml.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 namespace AkouoApi.Models;
 

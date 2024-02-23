@@ -24,16 +24,16 @@ public class LanguageService : BaseService
         return JObject.Parse(props ?? "{}").Value<string>("languageName");
     }
 
-    private List<Language> GetLanguages(IQueryable<Bible> readybibles)
+    private List<Language> GetLanguages(IEnumerable<Bible> readybibles)
     {
         List<string> isos = readybibles.Select(o=> o.Iso??"").Distinct().ToList();
         List<Language> languages = new();
         for (int ix = 0; ix < isos.Count; ix++)
         {
             string iso = isos[ix];
-            IQueryable<Bible> isoBibles = readybibles.Where(o => o.Iso == iso);
+            IEnumerable<Bible> isoBibles = readybibles.Where(o => o.Iso == iso);
             //find an isoMediafile for each language
-            Mediafile? isomedia = isoBibles.Include(o=>o.IsoMediafile).Where(o => o.IsoMediafileId != null).FirstOrDefault()?.IsoMediafile;
+            Mediafile? isomedia = isoBibles.Where(o => o.IsoMediafileId != null).FirstOrDefault()?.IsoMediafile;
             string name = GetBibleLanguage(isoBibles.FirstOrDefault()) ?? iso;
             //find the number of bibles for each language
             int bibles = isoBibles.Select(o=> o.BibleId).Distinct().Count();

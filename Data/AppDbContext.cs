@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Artifactcategory> Artifactcategorys => Set<Artifactcategory>();
     public DbSet<Artifacttype> Artifacttypes => Set<Artifacttype>();
     public DbSet<Bible> Bibles => Set<Bible>();
+    public DbSet<Graphic> Graphics => Set<Graphic>();
     public DbSet<Mediafile> Mediafiles => Set<Mediafile>();
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Organizationbible> OrganizationBibles => Set<Organizationbible>();
@@ -129,6 +130,7 @@ public class AppDbContext : DbContext
 
         DefineRelationships(builder);
     }
+
 }
 
 

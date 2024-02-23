@@ -23,7 +23,7 @@ namespace AkouoApi.Models
         public int Level { get; set; }
         [ForeignKey(nameof(TitleMediafile))]
         public int? TitleMediafileId { get; set; }
-
+        public string? State { get; set; }
         public Mediafile? TitleMediafile { get; set; }
         public bool Archived { get; set; }
 

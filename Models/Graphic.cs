@@ -15,6 +15,7 @@ namespace AkouoApi.Models
         public int ResourceId { get; set; }
         [Column(TypeName = "jsonb")]
         public string? Info { get; set; } //json
+        public DateTime? DateUpdated { get; set; }
         public bool Archived { get; set; }
     }
 }
