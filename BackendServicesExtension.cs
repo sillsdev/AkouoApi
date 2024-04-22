@@ -29,7 +29,6 @@ namespace AkouoApi.Services;
         services.AddScoped<BookService>();
         services.AddScoped<LanguageService>();
         services.AddScoped<MediafileService>();
-        services.AddScoped<OBTTypeService>();
         /*
             services.AddScoped<ArtifactCategoryService>();
             services.AddScoped<GraphicService>();

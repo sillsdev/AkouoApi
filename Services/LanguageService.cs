@@ -49,13 +49,13 @@ public class LanguageService : BaseService
         return languages;
     }
 
-    public List<Language> GetLanguages()
+    public List<Language> GetLanguages(bool publishBeta)
     {
-        return GetLanguages(ReadyBibles());
+        return GetLanguages(ReadyBibles(publishBeta));
     }
-    public List<Language> GetLanguage(string iso)
+    public List<Language> GetLanguage(string iso, bool publishBeta)
     {
-        return GetLanguages(ReadyBibles().Where(o => o.Iso == iso));
+        return GetLanguages(ReadyBibles(publishBeta).Where(o => o.Iso == iso));
     }
 
 

@@ -18,7 +18,7 @@ namespace AkouoApi.Models
         public Artifactcategory? ArtifactCategory { get; set; }
 
         public int? VersionNumber { get; set; }
-        public int? Duration { get; set; }
+        public decimal? Duration { get; set; }
         public string? ContentType { get; set; }
         public string? Transcription { get; set; }
         public string? OriginalFile { get; set; }

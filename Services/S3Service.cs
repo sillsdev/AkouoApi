@@ -163,12 +163,7 @@ namespace AkouoApi.Services
                 ContentType = contentType,
             };
         }
-        private long GetFileSize(string key)
-        {
-            // Get the object size to enable Seek from end operations
-            GetObjectMetadataResponse data = GetFileData(key);
-            return data.ContentLength;
-        }
+
         private GetObjectMetadataResponse GetFileData(string key)
         {
             GetObjectMetadataResponse data = _client.GetObjectMetadataAsync(USERFILES_BUCKET, key).Result;

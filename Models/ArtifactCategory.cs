@@ -9,7 +9,7 @@ namespace AkouoApi.Models;
         public bool Discussion { get; set; }
         public bool Resource { get; set; }
         public bool Note { get; set; }
-
+        public string? Color { get; set; }
         public int? TitleMediafileId { get; set; }
 
         public Mediafile? TitleMediafile { get; set; }

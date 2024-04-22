@@ -20,6 +20,7 @@ namespace AkouoApi.Models
 
         public virtual Plan? Plan { get; set; }
         public bool Published { get; set; }
+        public string PublishTo { get; set; } = "{}";
         public int Level { get; set; }
         [ForeignKey(nameof(TitleMediafile))]
         public int? TitleMediafileId { get; set; }

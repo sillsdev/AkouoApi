@@ -25,15 +25,16 @@
     public class BibleShort : BaseModel
     {
         public BibleShort(Bible bible, Audio[] audio) {
+            Id = bible.Id;
             Bible_id = bible.BibleId;
             Iso = bible.Iso;
             Name = bible.BibleName;
-            Audio = audio;
+            Title_audio = audio;
         }
         public string? Bible_id { get; set; }
         public string? Abbr => Bible_id? [3..] ?? "";
         public string? Iso { get; set; }
         public string? Name { get; set; }
-        public Audio [] Audio { get; set; } = Array.Empty<Audio>();
+        public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
     }
 }

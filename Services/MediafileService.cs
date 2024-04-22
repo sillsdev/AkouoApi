@@ -8,15 +8,13 @@ namespace AkouoApi.Services
 {
     public class MediafileService// : BaseArchiveService<Mediafile>
     {
-        private readonly ILogger<LanguageService> _logger;
         private readonly AppDbContext _context;
         private readonly IS3Service _s3Service;
 
-        public MediafileService(ILogger<LanguageService> logger,
+        public MediafileService(
                            AppDbContext context,
                            IS3Service s3Service)
         {
-            _logger = logger;
             _context = context;
             _s3Service = s3Service;
         }
@@ -109,13 +107,26 @@ namespace AkouoApi.Services
             response.Message = mf.OriginalFile ?? "";
             return response;
         }
-
         public Mediafile? GetLatest(int passageId)
         {
             return _context.Mediafiles
-                .Where(mf => mf.PassageId == passageId)
+                .Where(mf => mf.PassageId == passageId && mf.ReadyToShare)
                 .OrderByDescending(mf => mf.VersionNumber)
                 .FirstOrDefault();
+        }
+        public Mediafile? GetLatestNote(Passage passage)
+        {
+            if (passage.SharedResourceId != null)
+            {
+                Sharedresource? sr = _context.Sharedresources
+                    .Where(sr => sr.Id == passage.SharedResourceId)
+                    .FirstOrDefault();
+                if (sr?.PassageId != null)
+                {
+                    return GetLatest((int)sr.PassageId);
+                }
+            }
+            return GetLatest(passage.Id);
         }
         /*
         public List<Mediafile> GetIPMedia(IQueryable<Organization> orgs)

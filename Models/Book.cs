@@ -136,7 +136,7 @@ public class Book :BaseModel
     public string? Book_order { // "A01"
         get {
             BookInfo? info = GetBookInfo();
-            return (info?.Testament == "OT" ? "A" : "B") + info?.TestamentOrder.ToString();
+            return (info?.Testament == "OT" ? "A" : "B") + info?.TestamentOrder.ToString().PadLeft(2, '0');
         } 
     }
     public string? Book_group { // "The Law"
@@ -144,10 +144,11 @@ public class Book :BaseModel
     } 
     public int [] Chapters { get; set; } = Array.Empty<int>();
     public string [] Movements { get; set; } = Array.Empty<string>();
-    public Audio [] Audio { get; set; } = Array.Empty<Audio>();
-    public Audio [] Audio_alt { get; set; } = Array.Empty<Audio>();
+    public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
+    public Audio [] Title_audio_alt { get; set; } = Array.Empty<Audio>();
     public Image [] Images { get; set; } = Array.Empty<Image>();
     public string? Testament {
         get { return GetBookInfo()?.Testament; }
     }
+    public string Obt_type { get { return OBTTypeEnum.book.ToString(); } }
 }

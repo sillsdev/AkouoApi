@@ -1,4 +1,5 @@
 ﻿using AkouoApi.Services;
+using static System.Net.WebRequestMethods;
 
 namespace AkouoApi.Models;
 
@@ -7,15 +8,19 @@ public class Audio
     public Audio()
     {
     }
-    public Audio(string format, DateTime timestamp, string audio_filename, string url)
+    public Audio(Mediafile media, string url)
     {
-        Format = format;
-        Timestamp = timestamp;
-        Audio_Filename = audio_filename;
-        Url = url;
+        Id = media.Id;
+        Format = media.ContentType ?? "";
+        Timestamp = media.DateUpdated.ToUniversalTime();
+        Audio_filename = media.S3File ?? "";
+        Url = !url.StartsWith("https://") ? "https://" + url : url;
+        Duration = media.Duration??0;                  
     }
+    public int Id { get; }
     public string Format { get; } = "";
     public DateTime Timestamp { get; }
-    public string Audio_Filename { get; } = "";
+    public string Audio_filename { get; } = "";
     public string Url { get; } = "";
+    public decimal Duration { get; } = 0;
 }
