@@ -36,5 +36,7 @@
         public string? Iso { get; set; }
         public string? Name { get; set; }
         public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
+        public string Notes_title { get; set; } = "Notes";
+        public List<AudioNote> Audio_notes { get; set; } = new();
     }
 }

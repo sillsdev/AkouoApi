@@ -147,6 +147,7 @@ public class Book :BaseModel
     public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
     public Audio [] Title_audio_alt { get; set; } = Array.Empty<Audio>();
     public Image [] Images { get; set; } = Array.Empty<Image>();
+    public AudioNote [] Audio_notes { get; set; } = Array.Empty<AudioNote>();
     public string? Testament {
         get { return GetBookInfo()?.Testament; }
     }

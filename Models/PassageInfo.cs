@@ -42,9 +42,12 @@ public class AudioNote : PassageBase
         Images = images;
         Title = sr?.Title ?? "";
         Title_audio = titleaudio != null ? new Audio [] { titleaudio } : Array.Empty<Audio>();
+        Note_category = sr?.ArtifactCategory?.Categoryname ?? "audio_note";
+        Note_category_id = sr?.ArtifactCategory?.Id??0;
     }
     public Image [] Images { get; set; } = Array.Empty<Image>();
     public string Title { get; set; } = "";
     public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
-
+    public string Note_category { get; set; } = "audio_note";
+    public int Note_category_id { get; set; } = 1;
 }

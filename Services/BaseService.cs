@@ -31,7 +31,7 @@ public class BaseService
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         return _context.Mediafiles.Where(m => !m.Archived && m.ArtifactTypeId == null && m.ReadyToShare)
             .Join(_context.Passages.Where(p => p.Reference != null && (p.PassagetypeId == null || !vernacularOnly)).Include(p => p.SharedResource).ThenInclude(r => r.TitleMediafile), m => m.PassageId, p => p.Id, (m, p) => new { m, p })
-            .Join(_context.Sections.Where(s => !s.Archived && (s.Published || s.Level ==1) && (publishBeta || s.PublishTo == "{\"Public\": \"true\"}")).Include(s => s.TitleMediafile), mp => mp.p.SectionId, s => s.Id, (mp, s) => new { mp.m, mp.p, s })
+            .Join(_context.Sections.Where(s => !s.Archived && ((s.Published && (publishBeta || s.PublishTo == /*lang=json,strict*/ "{\"Public\": \"true\"}")) || s.Level == 1)).Include(s => s.TitleMediafile), mp => mp.p.SectionId, s => s.Id, (mp, s) => new { mp.m, mp.p, s })
             .Join(_context.Plans, mps => mps.s.PlanId, pl => pl.Id, (mps, pl) => new { mps, pl })
             .Join(_context.Projects, mpspl => mpspl.pl.ProjectId, pr => pr.Id, (mpspl, pr) => new { mpspl.mps.m, mpspl.mps.p, mpspl.mps.s, pr })
             .Join(_context.OrganizationBibles, mpspr => mpspr.pr.OrganizationId, ob => ob.OrganizationId, (mpspr, ob) => new { mpspr, ob })

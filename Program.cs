@@ -165,4 +165,10 @@ app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}/section/{section}",
                 new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, BoolParse(beta), true, chapter, section))
 ).WithName("GetBibleBookChapterSection").Produces<ApiResponse>(200);
 
+app.MapGet("/bibles/{bibleId}/general/books", (string bibleId,
+                                       [FromQuery(Name = "beta")] string? beta,
+                                       ILogger<Program> _logger, BookService _service) =>
+    new ApiResponse(_service.GetBibleBooks(bibleId, BoolParse(beta), null))
+).WithName("GetBibleGeneralBooks").Produces<ApiResponse>(200);
+
 app.Run();

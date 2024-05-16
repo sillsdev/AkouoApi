@@ -76,7 +76,7 @@ public class BibleService : BaseService
             }
             if (all.Any(all => all.Passage.PassagetypeId == chapterid))
             {
-                obts.Add(new OBTType(OBTTypeEnum.chapter_number));
+                obts.Add(new OBTType(OBTTypeEnum.chapter));
             }
             int noteid = NoteType().Id;
 
