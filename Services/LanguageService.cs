@@ -51,11 +51,11 @@ public class LanguageService : BaseService
 
     public List<Language> GetLanguages(bool publishBeta)
     {
-        return GetLanguages(ReadyBibles(publishBeta));
+        return GetLanguages(ReadyBibles(publishBeta).ToList());
     }
     public List<Language> GetLanguage(string iso, bool publishBeta)
     {
-        return GetLanguages(ReadyBibles(publishBeta).Where(o => o.Iso == iso));
+        return GetLanguages(ReadyBibles(publishBeta).Where(o => o.Iso == iso).ToList());
     }
 
 

@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
     public DbSet<Passagetype> Passagetypes => Set<Passagetype>();
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<PublishedBible> Vwpublishedbibles => Set<PublishedBible>();
+    public DbSet<PublishedScripture> Vwpublishedscripture => Set<PublishedScripture>();
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Sharedresource> Sharedresources => Set<Sharedresource>();
     public DbSet<Sharedresourcereference> Sharedresourcereferences => Set<Sharedresourcereference>();

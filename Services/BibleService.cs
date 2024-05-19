@@ -44,7 +44,7 @@ public class BibleService : BaseService
     }
     public List<BibleFull> GetBible(string bibleId, bool publishBeta)
     {
-        return FullBibles(ReadyBibles(publishBeta).Where(o => o.BibleId == bibleId).ToList());
+        return FullBibles(ReadyBibles(publishBeta, bibleId).ToList());
     }
     public List<BibleShort> GetBibleByIso(string iso, bool publishBeta)
     {
@@ -59,39 +59,38 @@ public class BibleService : BaseService
         List<OBTType> obts = new();
         if (bible != null)
         {
-            List<PublishedAndReady> all = Ready(false, publishBeta, bible).ToList();
-            if (all.Any(all => all.Passage.PassagetypeId == null))
+            List<PublishedScripture> all = Ready(false, publishBeta, bible).ToList();
+            if (all.Any(all => all.Passagetype == null))
             {
                 obts.Add(new OBTType(OBTTypeEnum.scripture));
-                if (all.Any(all => (all.Passage.Book ?? "") != ""))
+                if (all.Any(all => (all.Book ?? "") != ""))
                 {
                     obts.Add(new OBTType(OBTTypeEnum.book));
                 }
             }
             int chapterid = ChapterType().Id;
-            IEnumerable<Section> movements = AnyMovements(bible);
-            if (movements.Any())
+            if (AnyMovements(all))
             {
                 obts.Add(new OBTType(OBTTypeEnum.movement));
             }
-            if (all.Any(all => all.Passage.PassagetypeId == chapterid))
+            if (all.Any(all => all.Passagetype == CHAPTER))
             {
                 obts.Add(new OBTType(OBTTypeEnum.chapter));
             }
             int noteid = NoteType().Id;
 
-            IEnumerable<PublishedAndReady> notes = all.Where(all => all.Passage.PassagetypeId == noteid);
-            int introcount = notes.Where(n => n.Section.Level < 3).Count();
-            PublishedAndReady [] ordered = all.Where(n => n.Section.Level == 3).OrderBy(a => a.Section.Sequencenum).ThenBy(a => a.Passage.Sequencenum).ToArray();
-            IEnumerable<PublishedAndReady> maybechapter = notes.Where(n => n.Section.Level == 3);
-            foreach (PublishedAndReady note in maybechapter)
+            IEnumerable<PublishedScripture> notes = all.Where(all => all.Passagetype == NOTE);
+            int introcount = notes.Where(n => n.Level < 3).Count();
+            PublishedScripture [] ordered = all.Where(n => n.Level == 3).OrderBy(a => a.Sectionsequence).ThenBy(a => a.Sequencenum).ToArray();
+            IEnumerable<PublishedScripture> maybechapter = notes.Where(n => n.Level == 3);
+            foreach (PublishedScripture note in maybechapter)
             {
                 int ix = Array.IndexOf(ordered, note);
-                while (ix > 0 && ordered [ix].Passage.PassagetypeId == noteid)
+                while (ix > 0 && ordered [ix].Passagetype == NOTE)
                 {
                     ix--;
                 }
-                if (ordered [ix].Passage.PassagetypeId == chapterid)
+                if (ordered [ix].Passagetype == CHAPTER)
                 {
                     introcount++;
                 }
@@ -128,8 +127,8 @@ public class BibleService : BaseService
         List<NoteCategoryInfo> cats = new();
         if (bible != null)
         {
-            IEnumerable<PublishedAndReady> r = Ready(false, publishBeta, bible).ToList().Where(p => p.Passage.PassagetypeId == NoteType().Id).ToList();
-            IEnumerable<Artifactcategory> acs = r.Select(p => GetNoteResource(p.Passage)?.ArtifactCategory).Select(a => a!).Distinct(new RecordEqualityComparer<Artifactcategory>());
+            IEnumerable<PublishedScripture> r = Ready(false, publishBeta, bible).ToList().Where(p => p.Passagetype == NOTE).ToList();
+            IEnumerable<Artifactcategory> acs = r.Select(p => p.Sharedresource?.ArtifactCategory).Select(a => a!).Distinct(new RecordEqualityComparer<Artifactcategory>());
             foreach (Artifactcategory ac in acs)
             {
                 if (ac != null)
