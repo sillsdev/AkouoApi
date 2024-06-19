@@ -42,7 +42,7 @@ public class BaseService
                         (!vernacularOnly || s.Passagetype == null) &&
                         (book == null || s.Book == book))
             .Include(s => s.Mediafile)
-            .Include(s => s.Sharedresource);
+            .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory);
     }
     protected IEnumerable<PublishedScripture> VernacularReady(bool publishBeta, Bible? bible = null)
     {
@@ -119,7 +119,7 @@ public class BaseService
     }
     protected List<Section> ReadyMovements(List<PublishedScripture> ready, int? movementId=null)
     {
-        IEnumerable<int?> movementids = ready.Where(p => p.Passagetype == null && (movementId == null || p.Movementid == movementId)).Select(r => r.Movementid).Distinct();
+        IEnumerable<int?> movementids = ready.Where(p => (movementId == null || p.Movementid == movementId)).Select(r => r.Movementid).Distinct();
         List<Section> movements = _context.Sections.Where(s => movementids.Contains(s.Id)).OrderBy(s => s.Sequencenum).ToList();
         for (int ix = 0; ix < movements.Count(); ix++)
         {

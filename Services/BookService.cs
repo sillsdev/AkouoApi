@@ -1,14 +1,15 @@
 ﻿using AkouoApi.Data;
 using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
+using System.Diagnostics;
+
 
 namespace AkouoApi.Services;
 
 public class BookService : BaseService
 {
+    private long ticks = DateTime.Now.Ticks;
     private enum NoteLevel: int
     {
         Book = 1,
@@ -23,13 +24,15 @@ public class BookService : BaseService
                            MediafileService mediafileService) : base(logger, context, s3Service, mediafileService)
     {
     }
+    private void WriteLog(string message)
+    {
+        Debug.WriteLine($"{DateTime.Now.ToLongTimeString()} XXX {DateTime.Now.Ticks - ticks} {message}");
+        ticks = DateTime.Now.Ticks;
+    }
     private static int [] ReadyChapters(IEnumerable<PublishedScripture> publishedpassages)
     {
-        IEnumerable<int> startchapters = publishedpassages.Select(p => p.Startchapter ?? 0);
-        IEnumerable<int> endchapters = publishedpassages.Select(p => p.Endchapter ?? 0);
-        int [] chapters = startchapters.Union(endchapters).Where(x => x != 0).ToArray();
-        Array.Sort(chapters);
-        return chapters;
+        IEnumerable<int> chapters = publishedpassages.Select(p => p.DestinationChapter??0);
+        return chapters.ToImmutableSortedSet().ToArray();
     }
     public Book GetBook(List<PublishedScripture> ready, string book)
     {
@@ -90,7 +93,7 @@ public class BookService : BaseService
         if (bible == null) return wrapper;
         List<ChapterInfo> info = wrapper.Chapters;
         IQueryable<PublishedScripture> ready = Ready(false, beta, bible, bookId);
-        IQueryable<PublishedScripture> vernacularq = ready.Where(r => r.Passagetype == null);
+        IQueryable<PublishedScripture> vernacularq = ready.Where(r => r.Passagetype == null).Include(r => r.Section);
         if (justthischapter != null)
             vernacularq = vernacularq.Where(p => p.Startchapter == int.Parse(justthischapter)|| p.Endchapter == int.Parse(justthischapter));
         if (justthissection != null)
@@ -104,7 +107,7 @@ public class BookService : BaseService
         int chapterid = ChapterType().Id;
         foreach (int chapter in chapters)
         {
-            List<PublishedScripture> chapterpsgs = vernacular.Where(p => p.Startchapter == chapter||p.Endchapter==chapter).ToList();
+            List<PublishedScripture> chapterpsgs = vernacular.Where(p => p.DestinationChapter == chapter).ToList();
             List<Section> readySections = chapterpsgs.Select(p => p.Section).Select(s => s!).Distinct(new RecordEqualityComparer<Section>()).OrderBy(x => x.Sequencenum).ToList(); 
             IEnumerable<Section> movements = ReadyMovements(chapterpsgs);
             PublishedScripture? chapnum = ready.Where(r => r.Book == bookId && r.Passagetype == CHAPTER && r.Reference == CHAPTER+" "+chapter.ToString()).FirstOrDefault();
@@ -173,27 +176,34 @@ public class BookService : BaseService
     }
     public MovementWrapper GetBibleBookMovements(string bibleId, string bookId, bool beta, bool showSections, string? justthismovement = null, string? justthissection = null)
     {
+        //WriteLog("GetBibleBookMovements");
         MovementWrapper movementWrapper = new (bookId);
         Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault();
         if (bible == null)
             return movementWrapper;
         List<PublishedScripture> ready = Ready(false, beta, bible, bookId).Include(r => r.Titlemediafile).ToList();
+        //WriteLog("ready");
         Book book = GetBook(ready, bookId);
+        //WriteLog("getbook");
         if (book == null)
             return movementWrapper;
+        Debug.WriteLine("{0} {1}",DateTime.Now.ToLongTimeString(), DateTime.Now.Ticks-ticks);
         movementWrapper.Name = book.Name??"";
         int? movementId = null;
         if (int.TryParse(justthismovement, out int id))
             movementId = id;
         List<Section> movements = ReadyMovements(ready, movementId).ToList();
+        //WriteLog("readymovements");
 
         if (!movements.Any())
             return movementWrapper;
         Dictionary<Section, IOrderedEnumerable<Section>> allmovements = 
             MovementSections(movements, ready);
+        //WriteLog("movementsections");
         List<MovementInfo> info = movementWrapper.Movements;
         movements.ForEach(m => {
             SectionInfo movementInfo = GetSection(m, ready);
+            //WriteLog("getsection");
             List<SectionInfo> sectionInfo = new ();
             if (showSections)
             {
@@ -206,6 +216,8 @@ public class BookService : BaseService
             }
             info.Add(new MovementInfo(allmovements[m].ToList(), movementInfo.Title_audio.ElementAtOrDefault(0), movementInfo.Images, sectionInfo.ToArray(), ready, Array.IndexOf(allmovements.Keys.ToArray(), m) + 1, m, movementInfo.Audio_notes));
         });
+        //WriteLog("done");
+
         return movementWrapper;
     }
 

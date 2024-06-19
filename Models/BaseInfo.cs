@@ -7,8 +7,8 @@ public class BaseInfo
     {
         decimal sectionstart = sections.Min(s => s.Sequencenum);
         decimal sectionend = sections.Max(s => s.Sequencenum);
-        int startchap = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null).Min(p => p.Startchapter) ?? 0;
-        int endchap = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null).Max(p => p.Endchapter) ?? 0;
+        int startchap = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null).Min(p => p.DestinationChapter) ?? 0;
+        int endchap = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null).Max(p => p.DestinationChapter) ?? 0;
         int startverse = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null && p.Startchapter == startchap).Min(p => p.Startverse) ?? 0;
         int endverse = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null && p.Endchapter == endchap).Max(p => p.Endverse) ?? 0;
         Section_start = (int)sectionstart;

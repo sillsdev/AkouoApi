@@ -48,7 +48,7 @@ public class BibleService : BaseService
     }
     public List<BibleShort> GetBibleByIso(string iso, bool publishBeta)
     {
-        return ShortBibles(ReadyBibles(publishBeta).Where(o => o.Iso == iso).ToList());
+        return ShortBibles(ReadyBibles(publishBeta).ToList().Where(o => o.Iso == iso).ToList());
     }
     public List<OBTType> GetBibleOBTTypes(string bibleId, bool beta)
     {
@@ -114,7 +114,9 @@ public class BibleService : BaseService
         {
             obts.Add(new OBTType(OBTTypeEnum.extra));
         }
+        obts.Add(new OBTType(OBTTypeEnum.title));
 
+        obts.Sort();
         return obts;
     }
 
@@ -134,7 +136,12 @@ public class BibleService : BaseService
                 if (ac != null)
                 cats.Add(new NoteCategoryInfo(ac, GetAudio(ac.TitleMediafile), GetGraphicImages(ac.Id, "category")));
             }
+            //get the special ones
+            _context.Artifactcategorys.Where(a => a.Specialuse != null).ToList().ForEach(ac => {
+                cats.Add(new NoteCategoryInfo(ac, GetAudio(ac.TitleMediafile), GetGraphicImages(ac.Id, "category")));
+            });
         }
+        cats.Sort();
         return cats;
     }
 

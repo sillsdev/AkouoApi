@@ -55,7 +55,7 @@ public class LanguageService : BaseService
     }
     public List<Language> GetLanguage(string iso, bool publishBeta)
     {
-        return GetLanguages(ReadyBibles(publishBeta).Where(o => o.Iso == iso).ToList());
+        return GetLanguages(ReadyBibles(publishBeta).ToList().Where(o => o.Iso == iso));
     }
 
 

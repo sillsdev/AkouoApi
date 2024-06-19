@@ -7,8 +7,8 @@ public class MovementInfo: BaseInfo
                         AudioNote [] audioNotes) : 
         base(sections, audio, graphics, sectionInfo, ready)
     {
-        int startchap = ready.Where(p => p.Sectionsequence == Section_start && p.Passagetype == null).Min(p => p.Startchapter ?? 0);
-        int endchap = ready.Where(p => p.Sectionsequence == Section_end && p.Passagetype == null).Max(p => p.Endchapter ?? 0);
+        int startchap = ready.Where(p => p.Sectionsequence == Section_start && p.Passagetype == null).Select(p => (int?)p.DestinationChapter).Min() ?? 0;
+        int endchap = ready.Where(p => p.Sectionsequence == Section_end && p.Passagetype == null).Select(p => (int?)p.DestinationChapter).Max() ?? 0;
         Chapter_start = startchap;
         Chapter_end = endchap;
         Id = m.Id;

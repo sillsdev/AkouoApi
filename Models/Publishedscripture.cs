@@ -1,30 +1,19 @@
-﻿namespace AkouoApi.Models;
+﻿using static AkouoApi.Utility.ResourceHelpers;
+using System.Text.Json;
+namespace AkouoApi.Models;
 
 public class PublishedScripture : BaseModel
 {
+    private int? destinationChapter;
+    private bool destinationChapterSet = false;
     public PublishedScripture()
     {
-        BibleId = "";
-        Biblename = "";
         Book = "";
         Contenttype = "";
-        Iso = "";
-        Languagename = "";
         Reference = "";
         S3file = "";
     }
     public int Bid { get; set; }
-    public string BibleId { get; set; }
-    public string Biblename { get; set; }
-    public string Iso { get; set; }
-    public string? Bibledescription { get; set; }
-    public int? Isomediafileid { get; set; }
-    public Mediafile? Isomediafile { get; set; }
-    public int? Biblemediafileid { get; set; }
-    public Mediafile? Biblemediafile { get; set; }
-    public string? Publishingdata { get; set; }
-    public string Languagename { get; set; }
-    public bool Rtl { get; set; }
     public int Planid { get; set; }
     public int? Movementid { get; set; }
     public int Sectionid { get; set; }
@@ -45,7 +34,7 @@ public class PublishedScripture : BaseModel
     public int? Endchapter { get; set; }
     public int? Endverse { get; set; }
     public string? Passagetype { get; set; }
-    public string? Bookname { get; set; }
+
     public int? Bookid { get; set; }
     public int? Bookmediafileid { get; set; }
     public string? Altname { get; set; }
@@ -61,4 +50,24 @@ public class PublishedScripture : BaseModel
     public string? S3file { get; set; }
     public decimal Filesize { get; set; }
     public DateTime Datecreated { get; set; }
+    public int? DestinationChapter {
+        get {
+            if (!destinationChapterSet)
+            {
+                if (Startchapter is null || Startchapter == Endchapter)
+                {
+                    destinationChapter = Startchapter;
+                }
+                else
+                {
+                    string verses = LoadResource("eng-vrs.json");
+                    Dictionary<string, int []>? versemap = JsonSerializer.Deserialize<Dictionary<string, int[]>>(verses);
+                    int lastverse = versemap?[Book]?[(Startchapter??1)-1] ?? 1000;
+                    destinationChapter = (Endverse > lastverse - Startverse + 1 ? Endchapter : Startchapter) ?? 0;
+                }
+                destinationChapterSet = true;
+            }
+            return destinationChapter;
+        }
+    }
 }

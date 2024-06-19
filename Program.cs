@@ -5,7 +5,7 @@ using AkouoApi.Services;
 using static AkouoApi.Utility.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using static System.Collections.Specialized.BitVector32;
+
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
