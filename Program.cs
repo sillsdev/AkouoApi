@@ -39,7 +39,7 @@ builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -84,16 +84,29 @@ app.MapGet("/bibles/{bibleId}", (string bibleId,
 app.MapGet("/bibles/{bibleId}/books", (string bibleId, 
                                        [FromQuery(Name = "beta")] string? beta,
                                        ILogger<Program> _logger, BookService _service) => 
-    new ApiResponse(_service.GetBibleBooks(bibleId, BoolParse(beta), null))
+    new ApiResponse(_service.GetBibleBooks(bibleId, true,BoolParse(beta), null))
 ).WithName("GetBibleBooks").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/general/books", (string bibleId,
+                                       [FromQuery(Name = "beta")] string? beta,
+                                       ILogger<Program> _logger, BookService _service) =>
+    new ApiResponse(_service.GetBibleBooks(bibleId, false, BoolParse(beta), null))
+).WithName("GetBibleGeneralBooks").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/{book}", (string bibleId, 
                                         string book,
                                         [FromQuery(Name = "book_id")] string? book_id,
                                         [FromQuery(Name = "beta")] string? beta,
                                         ILogger<Program> _logger, BookService _service) =>
-        new ApiResponse(_service.GetBibleBooks(bibleId, BoolParse(beta), book_id ?? book))                                       
+        new ApiResponse(_service.GetBibleBooks(bibleId, true, BoolParse(beta), book_id ?? book))                                       
 ).WithName("GetBibleBook").Produces<ApiResponse>(200);
+app.MapGet("/bibles/{bibleId}/general/{book}", (string bibleId,
+                                        string book,
+                                        [FromQuery(Name = "book_id")] string? book_id,
+                                        [FromQuery(Name = "beta")] string? beta,
+                                        ILogger<Program> _logger, BookService _service) =>
+        new ApiResponse(_service.GetBibleBooks(bibleId, false, BoolParse(beta), book_id ?? book))
+).WithName("GetBibleGeneralBook").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/obt_types", (string bibleId,
                                             [FromQuery(Name = "beta")] string? beta,
@@ -113,8 +126,17 @@ app.MapGet("/bibles/{bibleId}/{book}/movements", (string bibleId,
                                                 [FromQuery(Name = "beta")] string? beta,
                                                 [FromQuery(Name = "sections")] string? sections,
                                                 ILogger<Program> _logger, BookService _service) =>
-                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, BoolParse(beta), BoolParse(sections ?? "true")))
+                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, true, BoolParse(beta), BoolParse(sections ?? "true")))
 ).WithName("GetBibleBookMovements").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/general/{book}/movements", (string bibleId,
+                                                string book,
+                                                [FromQuery(Name = "book_id")] string? book_id,
+                                                [FromQuery(Name = "beta")] string? beta,
+                                                [FromQuery(Name = "sections")] string? sections,
+                                                ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, false, BoolParse(beta), BoolParse(sections ?? "true")))
+).WithName("GetBibleGeneralBookMovements").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/{book}/movements/{movement}", (string bibleId,
                                                             string book,
@@ -122,8 +144,17 @@ app.MapGet("/bibles/{bibleId}/{book}/movements/{movement}", (string bibleId,
                                                             [FromQuery(Name = "book_id")] string? book_id,
                                                             [FromQuery(Name = "beta")] string? beta,
                                                             ILogger<Program> _logger, BookService _service) => 
-                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, BoolParse(beta), true, movement))
+                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, true, BoolParse(beta), true, movement))
 ).WithName("GetBibleBookMovement").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/general/{book}/movements/{movement}", (string bibleId,
+                                                            string book,
+                                                            string movement,
+                                                            [FromQuery(Name = "book_id")] string? book_id,
+                                                            [FromQuery(Name = "beta")] string? beta,
+                                                            ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, false, BoolParse(beta), true, movement))
+).WithName("GetBibleGeneralBookMovement").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/{book}/movements/{movement}/section/{section}", (string bibleId,
                                                                                 string book,
@@ -132,8 +163,18 @@ app.MapGet("/bibles/{bibleId}/{book}/movements/{movement}/section/{section}", (s
                                                                                 [FromQuery(Name = "book_id")] string? book_id,
                                                                                 [FromQuery(Name = "beta")] string? beta,
                                                                                 ILogger<Program> _logger, BookService _service) => 
-                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, BoolParse(beta), true, movement, section))
+                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, true, BoolParse(beta), true, movement, section))
 ).WithName("GetBibleBookMovementSection").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/general/{book}/movements/{movement}/section/{section}", (string bibleId,
+                                                                                string book,
+                                                                                string movement,
+                                                                                string section,
+                                                                                [FromQuery(Name = "book_id")] string? book_id,
+                                                                                [FromQuery(Name = "beta")] string? beta,
+                                                                                ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookMovements(bibleId, book_id ?? book, false, BoolParse(beta), true, movement, section))
+).WithName("GetBibleGeneralBookMovementSection").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/{book}/chapters", (string bibleId,
                                                 string book,
@@ -141,8 +182,17 @@ app.MapGet("/bibles/{bibleId}/{book}/chapters", (string bibleId,
                                                 [FromQuery(Name = "beta")] string? beta,
                                                 [FromQuery(Name = "sections")] string? sections,
                                                 ILogger<Program> _logger, BookService _service) =>
-                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, BoolParse(beta), BoolParse(sections??"true")))
+                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book,true, BoolParse(beta), BoolParse(sections??"true")))
 ).WithName("GetBibleBookChapters").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/general/{book}/chapters", (string bibleId,
+                                                string book,
+                                                [FromQuery(Name = "book_id")] string? book_id,
+                                                [FromQuery(Name = "beta")] string? beta,
+                                                [FromQuery(Name = "sections")] string? sections,
+                                                ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, false, BoolParse(beta), BoolParse(sections ?? "true")))
+).WithName("GetBibleGereralBookChapters").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}", (string bibleId,
                                                            string book,
@@ -151,8 +201,18 @@ app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}", (string bibleId,
                                                            [FromQuery(Name = "beta")] string? beta,
                                                            //[FromQuery(Name = "sections")] string? sections,
 ILogger<Program> _logger, BookService _service) =>
-                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, BoolParse(beta), true, chapter))
+                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, true, BoolParse(beta), true, chapter))
 ).WithName("GetBibleBookChapter").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/general/{book}/chapters/{chapter}", (string bibleId,
+                                                           string book,
+                                                           string chapter,
+                                                           [FromQuery(Name = "book_id")] string? book_id,
+                                                           [FromQuery(Name = "beta")] string? beta,
+//[FromQuery(Name = "sections")] string? sections,
+ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, false, BoolParse(beta), true, chapter))
+).WithName("GetBibleGeneralBookChapter").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}/section/{section}", 
                                                             (string bibleId,
@@ -162,13 +222,19 @@ app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}/section/{section}",
                                                             [FromQuery(Name = "book_id")] string? book_id,
                                                             [FromQuery(Name = "beta")] string? beta,
                                                             ILogger<Program> _logger, BookService _service) =>
-                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, BoolParse(beta), true, chapter, section))
+                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, true,BoolParse(beta), true, chapter, section))
 ).WithName("GetBibleBookChapterSection").Produces<ApiResponse>(200);
 
-app.MapGet("/bibles/{bibleId}/general/books", (string bibleId,
-                                       [FromQuery(Name = "beta")] string? beta,
-                                       ILogger<Program> _logger, BookService _service) =>
-    new ApiResponse(_service.GetBibleBooks(bibleId, BoolParse(beta), null))
-).WithName("GetBibleGeneralBooks").Produces<ApiResponse>(200);
+app.MapGet("/bibles/{bibleId}/general/{book}/chapters/{chapter}/section/{section}",
+                                                            (string bibleId,
+                                                            string book,
+                                                            string chapter,
+                                                            string section,
+                                                            [FromQuery(Name = "book_id")] string? book_id,
+                                                            [FromQuery(Name = "beta")] string? beta,
+                                                            ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, false, BoolParse(beta), true, chapter, section))
+).WithName("GetBibleGeneralBookChapterSection").Produces<ApiResponse>(200);
+
 
 app.Run();

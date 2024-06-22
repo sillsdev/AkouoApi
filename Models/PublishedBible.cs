@@ -17,5 +17,6 @@ public class PublishedBible : BaseModel
     public int? Biblemediafileid { get; set; }
     public Mediafile? Biblemediafile { get; set; }
     public string? Publishingdata { get; set; }
-    public bool hasPublic { get; set; }
+    public bool HasPublic { get; set; }
+    public int Organizationid { get; set; }
 }

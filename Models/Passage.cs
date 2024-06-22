@@ -12,7 +12,7 @@ namespace AkouoApi.Models
             Title = "";
             StepComplete = "{}";
         }
-        public Passage(PublishedScripture ps)
+        public Passage(Published ps)
         {
             Id = ps.Passageid;
             Sequencenum = ps.Sequencenum;

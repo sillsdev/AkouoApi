@@ -3,13 +3,13 @@
 public class ChapterInfo:BaseInfo
 {
     public ChapterInfo(List<Section> sections, 
-                       IOrderedEnumerable<PublishedScripture> passages, 
+                       IOrderedEnumerable<Published> passages, 
                        IEnumerable<Section> movements,
                        Audio? audio, 
                        Image [] graphics, 
                        SectionInfo [] sectionInfo, 
                        List<AudioNote> audio_notes, 
-                       IEnumerable<PublishedScripture> ready, 
+                       IEnumerable<Published> ready, 
                        int index, 
                        string text) :
     base(sections, audio, graphics, sectionInfo, ready)

@@ -3,12 +3,15 @@
 public class MovementInfo: BaseInfo
 {
     public MovementInfo(List<Section> sections, 
-                        Audio? audio, Image[] graphics, SectionInfo[] sectionInfo, IEnumerable<PublishedScripture> ready, int index, Section m,
+                        Audio? audio, 
+                        Image[] graphics, 
+                        SectionInfo[] sectionInfo, 
+                        IEnumerable<Published> ready, int index, Section m,
                         AudioNote [] audioNotes) : 
         base(sections, audio, graphics, sectionInfo, ready)
     {
-        int startchap = ready.Where(p => p.Sectionsequence == Section_start && p.Passagetype == null).Select(p => (int?)p.DestinationChapter).Min() ?? 0;
-        int endchap = ready.Where(p => p.Sectionsequence == Section_end && p.Passagetype == null).Select(p => (int?)p.DestinationChapter).Max() ?? 0;
+        int startchap = ready.Where(p => p.Sectionsequence == Section_start && p.Passagetype == null).Select(p => (int?)p.DestinationChapter()).Min() ?? 0;
+        int endchap = ready.Where(p => p.Sectionsequence == Section_end && p.Passagetype == null).Select(p => (int?)p.DestinationChapter()).Max() ?? 0;
         Chapter_start = startchap;
         Chapter_end = endchap;
         Id = m.Id;

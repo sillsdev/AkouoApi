@@ -1,8 +1,6 @@
 ﻿
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
-using System.Reflection.Emit;
-using System.Xml.Linq;
+
 
 namespace AkouoApi.Models
 {
@@ -12,7 +10,7 @@ namespace AkouoApi.Models
         {
             Name = "";
         }
-        public Section(PublishedScripture p) : base()
+        public Section(Published p) : base()
         {
             Id = p.Sectionid;
             Sequencenum = p.Sectionsequence;
@@ -29,8 +27,8 @@ namespace AkouoApi.Models
         public Section(int id,
                        decimal sequencenum, 
                        string? name, 
-                       int planId, 
-                       int level, 
+                       int planId,
+                       SectionLevel level, 
                        Mediafile? titleMediafile)
         {
             Id = id;
@@ -57,7 +55,7 @@ namespace AkouoApi.Models
         public virtual Plan? Plan { get; set; }
         public bool Published { get; set; }
         public string PublishTo { get; set; } = "{}";
-        public int Level { get; set; }
+        public SectionLevel Level { get; set; }
         [ForeignKey(nameof(TitleMediafile))]
         public int? TitleMediafileId { get; set; }
         public string? State { get; set; }
