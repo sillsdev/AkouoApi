@@ -1,7 +1,4 @@
-﻿using AkouoApi.Services;
-using System.ComponentModel.DataAnnotations.Schema;
-
-
+﻿
 namespace AkouoApi.Models
 {
     public partial class Mediafile : BaseModel, IArchive
@@ -13,7 +10,7 @@ namespace AkouoApi.Models
         public virtual Plan? Plan { get; set; }
 
         public int? ArtifactTypeId { get; set; }
-        public Artifacttype? ArtifactType { get; set; }
+
         public int? ArtifactCategoryId { get; set; }
         public Artifactcategory? ArtifactCategory { get; set; }
 

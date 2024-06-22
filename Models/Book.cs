@@ -1,6 +1,6 @@
 ﻿namespace AkouoApi.Models;
 
-public class Book :BaseModel
+public class Book :BaseModel, IComparable<Book>
 {
     private readonly Dictionary<string, BookInfo> BookInfo = new ()
     {
@@ -131,16 +131,16 @@ public class Book :BaseModel
     public string? Name_long { get; set; }
     public string? Name_alt { get; set; }
     public int? Testament_order {
-        get { return GetBookInfo()?.TestamentOrder; }   
+        get { return (GetBookInfo()?.TestamentOrder)??100; }   
         }
     public string? Book_order { // "A01"
         get {
             BookInfo? info = GetBookInfo();
-            return (info?.Testament == "OT" ? "A" : "B") + info?.TestamentOrder.ToString().PadLeft(2, '0');
+            return (info == null ? Book_id : info.Testament == "OT" ? "A" : "B") + info?.TestamentOrder.ToString().PadLeft(2, '0');
         } 
     }
     public string? Book_group { // "The Law"
-        get { return GetBookInfo()?.BookGroup; }
+        get { return (GetBookInfo()?.BookGroup)??"extras"; }
     } 
     public int [] Chapters { get; set; } = Array.Empty<int>();
     public string [] Movements { get; set; } = Array.Empty<string>();
@@ -152,4 +152,13 @@ public class Book :BaseModel
         get { return GetBookInfo()?.Testament; }
     }
     public string Obt_type { get { return OBTTypeEnum.book.ToString(); } }
+    public int CompareTo(Book? compare)
+    {
+        // A null value means that this object is greater.
+        return compare == null ||
+            (compare.Book_order == null && Book_order != null) ? 1 :
+            (Book_order != null && compare.Book_order != null) ?
+            Book_order.CompareTo(compare.Book_order) : 
+            (Name??Book_id??"").CompareTo(compare.Book_id);
+    }
 }

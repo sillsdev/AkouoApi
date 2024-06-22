@@ -1,13 +1,15 @@
 ﻿using AkouoApi.Data;
 using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
+using System.Diagnostics;
+
 
 namespace AkouoApi.Services;
 
 public class BookService : BaseService
 {
+    private long ticks = DateTime.Now.Ticks;
     private enum NoteLevel: int
     {
         Book = 1,
@@ -16,48 +18,48 @@ public class BookService : BaseService
         Section = 4,
         Passage = 5
     }
-    private readonly int Noteid;
-    private readonly int Chapterid;
     public BookService(ILogger<LanguageService> logger,
                            AppDbContext context,
                            IS3Service s3Service,
                            MediafileService mediafileService) : base(logger, context, s3Service, mediafileService)
     {
-        Noteid = NoteType().Id;
-        Chapterid = ChapterType().Id;
     }
-    private static int [] ReadyChapters(IEnumerable<Passage> publishedpassages)
+    private void WriteLog(string message)
     {
-        IEnumerable<int> startchapters = publishedpassages.Select(p => p.StartChapter ?? 0);
-        IEnumerable<int> endchapters = publishedpassages.Select(p => p.EndChapter ?? 0);
-        int [] chapters = startchapters.Union(endchapters).Where(x => x != 0).ToArray();
-        Array.Sort(chapters);
-        return chapters;
+        Debug.WriteLine($"{DateTime.Now.ToLongTimeString()} XXX {DateTime.Now.Ticks - ticks} {message}");
+        ticks = DateTime.Now.Ticks;
     }
-    public Book GetBook(Bible bible, string bookId, bool beta)
+    private static int [] ReadyChapters(IEnumerable<Published> publishedpassages)
     {
-        IQueryable<Section> titles = 
-            _context.OrganizationBibles.Where(o => o.BibleId == bible.Id)
-            .Join(_context.Organizations, o => o.OrganizationId, org => org.Id, (o, org) => org)
-            .Join(_context.Projects.Where(p => p.Language == bible.Iso), org => org.Id, p => p.OrganizationId, (org, p) => p)
-            .Join(_context.Plans, p => p.Id, pl => pl.ProjectId, (p, pl) => pl)
-            .Join(_context.Sections.Where(s => !s.Archived && s.Level == 1), pl => pl.Id, s => s.PlanId, (pl, s) => s).Include(s => s.TitleMediafile);
-
-        Section? title = titles.Where(s => s.Sequencenum == -4 && s.State== "BOOK " + bookId).FirstOrDefault();
-        List<PublishedAndReady> ready = Ready(false, beta, bible).ToList();
-        SectionInfo? titleInfo = title == null ? null : GetSection(title, ready);
-        Section? alttitle = titles.Where(s => s.Sequencenum == -3 && s.State == "ALTBK " + bookId).FirstOrDefault();
-        SectionInfo? alttitleInfo = alttitle == null ? null : GetSection(alttitle, ready);
-        IEnumerable<Passage> publishedpassages = ReadyVernacularPassages(bible, beta).Where(p => p.Book == bookId);
-        int [] chapters = ReadyChapters(publishedpassages);
-
-        IEnumerable<string> movements = ReadyMovements(bible, bookId, beta, null).Select(s => s.Name);
-         return new Book()
+        IEnumerable<int> chapters = publishedpassages.Select(p => p.DestinationChapter()??0);
+        return chapters.Where(c => c != 0).ToImmutableSortedSet().ToArray();
+    }
+    public Book GetBook(List<Published> ready, string book)
+    {
+        List<Published> myStuff = ready.Where(r => r.Book == book).ToList();
+        int [] chapters = ReadyChapters(myStuff);
+        int? bookid = myStuff.Select(r => r.Bookid).FirstOrDefault();
+        int? altbookid = myStuff.Select(r => r.Altbookid).FirstOrDefault();
+        SectionInfo? titleInfo=null;
+        SectionInfo? alttitleInfo=null;
+        if (bookid != null)
         {
-            Book_id = bookId,
-            Name = title?.Name ?? bookId,
-            Name_long = alttitle?.Name ?? bookId,
-            Name_alt = alttitle?.Name ?? bookId,
+            Section booksection = _context.Sections.Where(s => s.Id == altbookid).FirstOrDefault() ?? new Section();
+            titleInfo = GetSection(booksection, myStuff);
+        }
+        if (altbookid != null)
+        {
+            Section altbooksection = _context.Sections.Where(s => s.Id == bookid).FirstOrDefault() ?? new Section();
+            alttitleInfo = GetSection(altbooksection, myStuff);
+        }
+        IEnumerable<string> movements = ReadyMovements(myStuff).Select(s => s.Name);
+        return new Book()
+        {
+            Id = bookid??0,
+            Book_id = book,
+            Name = titleInfo?.Text ?? book,
+            Name_long = alttitleInfo?.Text ?? titleInfo?.Text ?? book,
+            Name_alt = alttitleInfo?.Text ?? book,
             Title_audio = titleInfo?.Title_audio ?? Array.Empty<Audio>(),
             Title_audio_alt = alttitleInfo?.Title_audio ?? Array.Empty<Audio>(),
             Images = titleInfo?.Images ?? Array.Empty<Image>(),
@@ -66,95 +68,114 @@ public class BookService : BaseService
             Audio_notes = titleInfo?.Audio_notes ?? Array.Empty<AudioNote>(),
          };
     }
-    public List<Book> GetBibleBooks(string bibleId, bool beta, string? book)
+    public List<Book> GetBibleBooks(string bibleId, bool scripture, bool beta, string? book)
     {
-        Bible? bible = ReadyBibles(beta).Where(o => o.BibleId == bibleId).FirstOrDefault();
-        return bible != null ? GetBibleBooks(bible, beta, book) : new List<Book>();
+        Bible? bible = ReadyBibles(beta, bibleId).FirstOrDefault();
+        return bible != null ? GetBibleBooks(bible, scripture, beta, book) : throw new Exception("Bible not found");
     }
-    private List<Book> GetBibleBooks(Bible bible, bool beta, string? book)
+    private List<Book> GetBibleBooks(Bible bible, bool scripture, bool beta, 
+                                     string? book)
     {
         List<Book> books = new();
-        IEnumerable<Passage> publishedpassages = ReadyVernacularPassages(bible, beta).ToList();
-        publishedpassages = book != null ? publishedpassages.Where(p => p.Book == book) : publishedpassages.Where(p => (p.Book ?? "") != "");
-
-        IEnumerable<string> publishedbooks = publishedpassages.Select(p => p.Book ?? "").Distinct();
+        List<Published> ready = Ready(scripture, false, beta, bible?.Id, book).ToList();
+        
+        IEnumerable<string> publishedbooks = ready.Where(r => r.Passagetype == null).Select(p => p.Book ?? "").Distinct();
         publishedbooks.ToList().ForEach(b => {
-            books.Add(GetBook(bible, b, beta));
+            books.Add(GetBook(ready, b));
         });
-
+        books.Sort();
         return books;
     }
-    public ChapterWrapper GetBibleBookChapters(string bibleId, string bookId, bool beta, bool sections, string? justthischapter = null, string? justthissection = null)
+    public ChapterWrapper GetBibleBookChapters(string bibleId, string bookId, bool scripture, bool beta, bool sections, string? justthischapter = null, string? justthissection = null)
     {
         ChapterWrapper wrapper = new(bookId);
         Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault();
         if (bible == null) return wrapper;
         List<ChapterInfo> info = wrapper.Chapters;
-        IEnumerable<Passage> publishedpassages = ReadyVernacularPassages(bible, beta).Where(p => p.Book == bookId);
+        IQueryable<Published> ready = Ready(scripture,false, beta, bible.Id, bookId);
+        IQueryable<Published> vernacularq = ready.Where(r => r.Passagetype == null).Include(r => r.Section);
         if (justthischapter != null)
-            publishedpassages = publishedpassages.Where(p => p.StartChapter == int.Parse(justthischapter)|| p.EndChapter == int.Parse(justthischapter));
+            vernacularq = vernacularq.Where(p => p.Startchapter == int.Parse(justthischapter)|| p.Endchapter == int.Parse(justthischapter));
         if (justthissection != null)
-            publishedpassages = publishedpassages.Where(p => p.Section?.Id == int.Parse(justthissection));
+            vernacularq = vernacularq.Where(p => p.Sectionid == int.Parse(justthissection));
+        List<Published> vernacular = vernacularq.ToList();
         //if there passages that cross chapters, we may have more than one chapter number
-        int[] chapters = ReadyChapters(publishedpassages).Where(c => justthischapter == null || c == int.Parse(justthischapter)).ToArray();
+        int[] chapters = ReadyChapters(vernacular).Where(c => justthischapter == null || c == int.Parse(justthischapter)).ToArray();
 
-        MovementMaps allmovements = MovementMap(bible,bookId);
-        List<PublishedAndReady> ready = Ready(false, beta, bible).ToList();
+        //Dictionary<Section, IOrderedEnumerable<Section>> allmovements = MovementSections(ReadyMovements(vernacular), vernacular);
         int noteid = NoteType().Id;
         int chapterid = ChapterType().Id;
         foreach (int chapter in chapters)
         {
-            IEnumerable<Passage> chapterpsgs = publishedpassages.Where(p => p.StartChapter == chapter||p.EndChapter==chapter);
+            List<Published> chapterpsgs = vernacular.Where(p => p.DestinationChapter() == chapter).ToList();
             List<Section> readySections = chapterpsgs.Select(p => p.Section).Select(s => s!).Distinct(new RecordEqualityComparer<Section>()).OrderBy(x => x.Sequencenum).ToList(); 
-            IEnumerable<Section> movements = MovementsFromSections(readySections, allmovements, null);
-            PublishedAndReady? chapnum = ready.Where(r => r.Passage.Book == bookId && r.Passage.PassagetypeId == chapterid && r.Passage.Reference == "CHNUM "+chapter.ToString()).FirstOrDefault();
-            Audio? audio = chapnum != null ? GetAudio(_mediafileService.GetLatest(chapnum.Passage.Id)) : null;
-            Image [] graphics = chapnum != null ?GetGraphicImages(chapnum.Passage.Id, "passage") : Array.Empty<Image>();
-            string text = chapnum?.Passage.Title ?? chapter.ToString();
+            IEnumerable<Section> movements = ReadyMovements(chapterpsgs);
+            Published? chapnum = ready.Where(r => r.Book == bookId && r.Passagetype == CHAPTER && r.Reference == CHAPTER+" "+chapter.ToString()).FirstOrDefault();
+            Audio? audio = chapnum != null ? GetAudio(_mediafileService.GetLatest(chapnum.Passageid)) : null;
+            Image [] graphics = chapnum != null ?GetGraphicImages(chapnum.Passageid, "passage") : Array.Empty<Image>();
+            string text = chapnum?.Title ?? chapter.ToString();
             List<SectionInfo> sectionInfo = new ();
             List<AudioNote> chapternotes = new();
             if (sections)
             {
                 foreach (Section s in readySections)
                 {
-                    sectionInfo.Add(GetSection(s, ready, chapternotes, chapter));
+                    sectionInfo.Add(GetSection(s, ready.ToList(), chapternotes, chapter));
                 }
             }
             info.Add(new ChapterInfo(readySections, chapterpsgs.OrderBy(x => x.Sequencenum), movements, audio, graphics, sectionInfo.ToArray(), chapternotes, ready, chapter, text));
         };    
         return wrapper;
     }
-    private SectionInfo GetSection (Section s, List<PublishedAndReady> ready, List<AudioNote>? chapternotes=null,  int chapter=0) 
+    private SectionInfo GetSection (Section s, List<Published> ready, List<AudioNote>? chapternotes=null,  int chapter=0) 
     {
         NoteLevel level = NoteLevel.Section;
         List<AudioNote> sectionnotes=new();
         List<PassageInfo> passages = new ();
-        IOrderedEnumerable<PublishedAndReady> readyPassages = ready.Where(r => r.Section.Id == s.Id).OrderBy(x => x.Passage.Sequencenum);
+        IOrderedEnumerable<Published> readyPassages = ready.Where(r => r.Sectionid == s.Id).OrderBy(x => x.Sequencenum);
         PassageInfo? curPassage = null;
         bool skipPassage = false;
-        foreach (PublishedAndReady p in readyPassages)
+        foreach (Published p in readyPassages)
         {
-            if (p.Passage.PassagetypeId == null)
+            if (p.Passagetype == null)
             {
-                skipPassage = chapter > 0 && p.Passage.StartChapter != chapter && p.Passage.EndChapter != chapter;
+                skipPassage = chapter > 0 && p.Startchapter != chapter && p.Endchapter != chapter;
                 if (!skipPassage)
                 {
-                    Mediafile? media = _mediafileService.GetLatest(p.Passage.Id);
-                    curPassage = new PassageInfo(p.Passage, GetAudio(_mediafileService.GetLatest(p.Passage.Id)), media?.Transcription);
+                    Mediafile? media = p.Mediafile;
+                    curPassage = new PassageInfo(new Passage(p), 
+                        p is PublishedScripture ? OBTTypeEnum.scripture : OBTTypeEnum.extra,
+                                GetAudio(p.Mediafile), 
+                                media?.Transcription);
                     passages.Add(curPassage);
                 } else
                     curPassage = null;
                 level = NoteLevel.Passage;
             }
-            else if (p.Passage.PassagetypeId == Chapterid) //chapter
+            else if (p.Passagetype == CHAPTER) //chapter
             {
+                if ( int.TryParse(p.Reference?.Split(" ")[1], out int chnum))
+                {
+                    p.Startchapter = chnum;
+                    p.Endchapter = chnum;
+                }
+                skipPassage = chapter > 0 && chnum != chapter;
+                if (!skipPassage)
+                {
+                    Mediafile? media = p.Mediafile;
+                    curPassage = new PassageInfo(new Passage(p),
+                                OBTTypeEnum.chapter,
+                                GetAudio(p.Mediafile),
+                                media?.Transcription);
+                    passages.Add(curPassage);
+                }
+                else
+                    curPassage = null;
                 level = NoteLevel.Chapter;
             }
-            else if (p.Passage.PassagetypeId == Noteid)
+            else if (p.Passagetype == NOTE)
             {
-                Sharedresource? sr = GetNoteResource(p.Passage);
-                Mediafile? media = _mediafileService.GetLatestNote(p.Passage);
-                AudioNote note = new (p.Passage, GetAudio(media), media?.Transcription, sr, GetGraphicImages(p.Passage.Id, "passage"), GetAudio(sr?.TitleMediafile));
+                AudioNote note = new (new Passage(p), OBTTypeEnum.audio_note, GetAudio(p.Mediafile), p.Transcription, p.Sharedresource, GetGraphicImages(p.Passageid, "passage"), GetAudio(p.Sharedresource?.TitleMediafile));
                 if (level == NoteLevel.Chapter && chapternotes != null)
                 {
                     chapternotes.Add(note);
@@ -171,49 +192,51 @@ public class BookService : BaseService
         };
         return new SectionInfo(s, GetAudio(s.TitleMediafile), GetGraphicImages(s.Id, "section"), passages.ToArray(), sectionnotes.ToArray());
     }
-    public MovementWrapper GetBibleBookMovements(string bibleId, string bookId, bool beta, bool showSections, string? justthismovement = null, string? justthissection = null)
+    public MovementWrapper GetBibleBookMovements(string bibleId, string bookId, bool scripture, bool beta, bool showSections, string? justthismovement = null, string? justthissection = null)
     {
+        //WriteLog("GetBibleBookMovements");
         MovementWrapper movementWrapper = new (bookId);
         Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault();
         if (bible == null)
             return movementWrapper;
-        Book book = GetBook(bible, bookId, beta);
+        List<Published> ready = Ready(scripture,false, beta, bible.Id, bookId).Include(r => r.Titlemediafile).ToList();
+        //WriteLog("ready");
+        Book book = GetBook(ready, bookId);
+        //WriteLog("getbook");
         if (book == null)
             return movementWrapper;
+        //Debug.WriteLine("{0} {1}",DateTime.Now.ToLongTimeString(), DateTime.Now.Ticks-ticks);
         movementWrapper.Name = book.Name??"";
-        Dictionary<Section, List<Section>> allmovements = MovementMap(bible, bookId).ByMovement;
-        if (allmovements.Count == 0)
-            return movementWrapper;
-        List<MovementInfo> info = movementWrapper.Movements;
         int? movementId = null;
-        if (int.TryParse(justthismovement, out int id)) movementId = id;
-        IEnumerable<Section> movements = ReadyMovements(bible, bookId, beta, movementId);
+        if (int.TryParse(justthismovement, out int id))
+            movementId = id;
+        List<Section> movements = ReadyMovements(ready, movementId).ToList();
+        //WriteLog("readymovements");
+
         if (!movements.Any())
             return movementWrapper;
-        IEnumerable<PublishedAndReady> readyVernacular = VernacularReady(beta, bible).ToList();
-        movements.ToList().ForEach(m => {
-            List<Section> sections = allmovements[m];
-            List<Section> readySections = new ();
-            sections.ForEach(s => {
-                if (readyVernacular.Any(r => r.Section.Id == s.Id))
-                    readySections.Add(s);
-            });
-            List<PublishedAndReady> ready = Ready(false, beta, bible).ToList();
+        Dictionary<Section, IOrderedEnumerable<Section>> allmovements = 
+            MovementSections(movements, ready);
+        //WriteLog("movementsections");
+        List<MovementInfo> info = movementWrapper.Movements;
+        movements.ForEach(m => {
             SectionInfo movementInfo = GetSection(m, ready);
+            //WriteLog("getsection");
             List<SectionInfo> sectionInfo = new ();
             if (showSections)
             {
-                readySections.ForEach(s => {
+                allmovements[m].ToList().ForEach(s => {
                     if (justthissection == null || s.Id == int.Parse(justthissection))
                     {
                         sectionInfo.Add(GetSection(s, ready));
                     }
                 });
             }
-            info.Add(new MovementInfo(readySections, movementInfo.Title_audio.ElementAtOrDefault(0), movementInfo.Images, sectionInfo.ToArray(), ready, Array.IndexOf(allmovements.Keys.ToArray(), m) + 1, m, movementInfo.Audio_notes));
+            info.Add(new MovementInfo(allmovements [m].ToList(), movementInfo.Title_audio.ElementAtOrDefault(0), movementInfo.Images, sectionInfo.ToArray(), ready, Array.IndexOf(allmovements.Keys.ToArray(), m) + 1, m, movementInfo.Audio_notes));
         });
-        return movementWrapper;
+        //WriteLog("done");
 
+        return movementWrapper;
     }
 
 }

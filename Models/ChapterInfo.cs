@@ -2,8 +2,16 @@
 
 public class ChapterInfo:BaseInfo
 {
-    public ChapterInfo(List<Section> sections, IOrderedEnumerable<Passage> passages, IEnumerable<Section> movements,
-                    Audio? audio, Image [] graphics, SectionInfo [] sectionInfo, List<AudioNote> audio_notes, IEnumerable<PublishedAndReady> ready, int index, string text) :
+    public ChapterInfo(List<Section> sections, 
+                       IOrderedEnumerable<Published> passages, 
+                       IEnumerable<Section> movements,
+                       Audio? audio, 
+                       Image [] graphics, 
+                       SectionInfo [] sectionInfo, 
+                       List<AudioNote> audio_notes, 
+                       IEnumerable<Published> ready, 
+                       int index, 
+                       string text) :
     base(sections, audio, graphics, sectionInfo, ready)
     {
         Id = index; 

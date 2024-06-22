@@ -1,16 +1,65 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Amazon.S3.Model;
+using System.ComponentModel.DataAnnotations.Schema;
+using static System.Collections.Specialized.BitVector32;
 
 namespace AkouoApi.Models
 {
-    public class Passage : BaseModel, IArchive
+    public class Passage : BaseModel
     {
+        public Passage() : base()
+        {
+            Reference = "";
+            Title = "";
+            StepComplete = "{}";
+        }
+        public Passage(Published ps)
+        {
+            Id = ps.Passageid;
+            Sequencenum = ps.Sequencenum;
+            Book = ps.Book;
+            Reference = ps.Reference;
+            Title = ps.Title;
+            SectionId = ps.Sectionid;
+            SharedResourceId = ps.Sharedresource?.Id;
+            SharedResource = ps.Sharedresource;
+            StartChapter = ps.Startchapter;
+            StartVerse = ps.Startverse;
+            EndChapter = ps.Endchapter;
+            EndVerse = ps.Endverse;
+            Passagetype = ps.Passagetype;
+        }
+        public Passage(int id,
+                       decimal sequencenum,
+                       string? book,
+                       string? reference,
+                       int sectionId,
+                       Sharedresource? sharedResource,
+                       string? title,
+                       int? startChapter,
+                       int? startVerse,
+                       int? endChapter,
+                       int? endVerse,
+                       string? passagetype) : base()
+        {
+            Id = id;
+            Sequencenum = sequencenum;
+            Book = book;
+            Reference = reference;
+            Title = title;
+            SectionId = sectionId;
+            SharedResourceId = sharedResource?.Id;
+            SharedResource = sharedResource;
+            StartChapter = startChapter;
+            StartVerse = startVerse;
+            EndChapter = endChapter;
+            EndVerse = endVerse;
+            Passagetype = passagetype;
+        }
         public decimal Sequencenum { get; set; }
 
         public string? Book { get; set; }
 
         public string? Reference { get; set; }
-
-        public string? State { get; set; }
 
         public string? Title { get; set; }
 
@@ -37,11 +86,7 @@ namespace AkouoApi.Models
         //[DatabaseGenerated(DatabaseGeneratedOption.Computed)] 
         public int? EndVerse { get; set; }
 
-        public int? PassagetypeId { get; set; }
-
-        public virtual Passagetype? Passagetype { get; set; }
-        public bool Archived { get; set; }
-
+        public string? Passagetype { get; set; }
         public bool ValidScripture {
             get {
                 return StartChapter != null && StartVerse != null && EndVerse != null;

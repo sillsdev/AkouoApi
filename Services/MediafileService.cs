@@ -2,7 +2,7 @@
 using AkouoApi.Data;
 using AkouoApi.Models;
 using System.Net;
-
+using System.Collections.Concurrent;
 
 namespace AkouoApi.Services
 {
@@ -10,6 +10,8 @@ namespace AkouoApi.Services
     {
         private readonly AppDbContext _context;
         private readonly IS3Service _s3Service;
+        private readonly ConcurrentDictionary<int, string> _cache;
+
 
         public MediafileService(
                            AppDbContext context,
@@ -17,6 +19,7 @@ namespace AkouoApi.Services
         {
             _context = context;
             _s3Service = s3Service;
+            _cache = new ConcurrentDictionary<int, string>();
         }
         /*
 
@@ -43,16 +46,19 @@ namespace AkouoApi.Services
             return org != null ? org.Slug + "/" + plan.Slug : throw new Exception("No org in DirectoryName");
         }
 
+        public string DirectoryName(int planId)
+        {
+            Plan? plan = _context.Plans
+                .Include(p => p.Project)
+                .ThenInclude(p => p.Organization)
+                .Where(p => p.Id == planId)
+                .FirstOrDefault();
+            return plan != null ? DirectoryName(plan) : "";
+        }
         public string DirectoryName(Mediafile entity)
         {
             int id = entity.Plan?.Id ?? entity.PlanId;
-            /* this no longer works...project is null */
-            Plan plan = _context.Plans
-                .Include(p => p.Project)
-                .ThenInclude(p => p.Organization)
-                .Where(p => p.Id == id)
-                .First();
-            return plan != null ? DirectoryName(plan) : "";
+            return _cache.GetOrAdd(id, value => DirectoryName(id));
         }
 
         public async Task<string> GetNewFileNameAsync(Mediafile mf, string suffix = "")

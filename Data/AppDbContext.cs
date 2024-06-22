@@ -13,19 +13,19 @@ public class AppDbContext : DbContext
     }
     #region DBSet
     public DbSet<Artifactcategory> Artifactcategorys => Set<Artifactcategory>();
-    public DbSet<Artifacttype> Artifacttypes => Set<Artifacttype>();
     public DbSet<Bible> Bibles => Set<Bible>();
     public DbSet<Graphic> Graphics => Set<Graphic>();
     public DbSet<Mediafile> Mediafiles => Set<Mediafile>();
     public DbSet<Organization> Organizations => Set<Organization>();
-    public DbSet<Organizationbible> OrganizationBibles => Set<Organizationbible>();
-    public DbSet<Passage> Passages => Set<Passage>();
     public DbSet<Passagetype> Passagetypes => Set<Passagetype>();
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<PublishedBible> Vwpublishedbibles => Set<PublishedBible>();
+    public DbSet<PublishedGeneral> Vwpublishedgeneral => Set<PublishedGeneral>();
+    public DbSet<PublishedScripture> Vwpublishedscripture => Set<PublishedScripture>();
+
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Sharedresource> Sharedresources => Set<Sharedresource>();
-    public DbSet<Sharedresourcereference> Sharedresourcereferences => Set<Sharedresourcereference>();
     #endregion
     public static void LowerCaseDB(ModelBuilder builder)
     {
@@ -68,7 +68,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Artifactcategory>().HasKey(a => a.Id);
         modelBuilder.Entity<Artifactcategory>().HasOne(p => p.TitleMediafile)
             .WithMany().HasForeignKey(p => p.TitleMediafileId);
-        modelBuilder.Entity<Artifacttype>().HasKey(a => a.Id);
         EntityTypeBuilder<Bible> bib = modelBuilder
             .Entity<Bible>();
         bib.HasOne(o => o.IsoMediafile)
@@ -86,11 +85,6 @@ public class AppDbContext : DbContext
         
         EntityTypeBuilder<Organization> orgEntity = modelBuilder.Entity<Organization>();
         orgEntity.HasKey(o => o.Id);
-
-        EntityTypeBuilder<Passage> pass = modelBuilder.Entity<Passage>();
-        pass.HasKey(p => p.Id);
-        pass.HasOne(p => p.Section)
-            .WithMany().HasForeignKey(p => p.SectionId);
 
         EntityTypeBuilder<Passagetype> passType = modelBuilder.Entity<Passagetype>();
         passType.HasKey(p => p.Id);
@@ -113,11 +107,6 @@ public class AppDbContext : DbContext
             .WithMany().HasForeignKey(p => p.PassageId);
         sr.HasOne(p => p.ArtifactCategory)
             .WithMany().HasForeignKey(p => p.ArtifactCategoryId);
-        EntityTypeBuilder<Sharedresourcereference> srr = modelBuilder.Entity<Sharedresourcereference>();
-        srr.HasKey(s => s.Id);
-        srr.HasOne(p => p.SharedResource)
-            .WithMany().HasForeignKey(p => p.SharedResourceId);
-              
     }
 
 

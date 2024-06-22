@@ -22,21 +22,26 @@
     ]
 }
 */
-    public class BibleShort : BaseModel
+    public class BibleShort : BaseModel, IComparable<BibleShort>
     {
         public BibleShort(Bible bible, Audio[] audio) {
             Id = bible.Id;
-            Bible_id = bible.BibleId;
+            Bible_id = bible.BibleId??"";
             Iso = bible.Iso;
             Name = bible.BibleName;
             Title_audio = audio;
         }
-        public string? Bible_id { get; set; }
+        public string Bible_id { get; set; }
         public string? Abbr => Bible_id? [3..] ?? "";
         public string? Iso { get; set; }
         public string? Name { get; set; }
         public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
-        public string Notes_title { get; set; } = "Notes";
         public List<AudioNote> Audio_notes { get; set; } = new();
+        public int CompareTo(BibleShort? compare)
+        {
+            // A null value means that this object is greater.
+            return compare == null ? 1 :
+            Bible_id.CompareTo(compare.Bible_id);
+        }
     }
 }

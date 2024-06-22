@@ -1,5 +1,11 @@
 ﻿namespace AkouoApi.Models;
 
+public enum SectionLevel
+{
+    Book = 1,
+    Movement = 2,
+    Section = 3,
+}
 public class BaseModel
 {
     public int Id { get; set; }

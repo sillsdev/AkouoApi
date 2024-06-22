@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace AkouoApi.Models;
 
@@ -13,7 +14,9 @@ public class BibleFull : BibleShort
             {
                 dynamic root = JObject.Parse(bible.PublishingData);
                 Alphabet = root["alphabet"]?.Value;
+                Copyright = root ["copyright"]?.Value;
                 Mark = root ["mark"]?.Value;
+                NotesTitle = root ["noteLabel"]?.Value ?? "Notes";
                 Publishers = root ["publishers"]?.Value;
                 string? lp = root["langProps"]?.Value;
                 if (lp != null)
@@ -32,9 +35,11 @@ public class BibleFull : BibleShort
             }
         }   
     }
+    public string? Copyright { get; set; }  
     public string? Description { get; set; }
     public string? Alphabet { get; set; }
     public string? Mark { get; set; }
+    public string? NotesTitle { get; set; }
     public string? Publishers { get; set; }
     public string? Language { get; set; }
     public string? Date { get; set; }

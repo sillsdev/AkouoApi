@@ -3,16 +3,19 @@
 public class BaseInfo
 {
     public BaseInfo(List<Section> sections,
-                        Audio? audio, Image [] graphics, SectionInfo [] sectionInfo, IEnumerable<PublishedAndReady> ready)
+                    Audio? audio, 
+                    Image [] graphics, 
+                    SectionInfo [] sectionInfo, 
+                    IEnumerable<Published> ready)
     {
-        decimal sectionstart = sections.Min(s => s.Sequencenum);
-        decimal sectionend = sections.Max(s => s.Sequencenum);
-        int startchap = ready.Where(p => p.Section.Sequencenum == sectionstart && p.Passage.PassagetypeId == null).Min(p => p.Passage.StartChapter) ?? 0;
-        int endchap = ready.Where(p => p.Section.Sequencenum == sectionend && p.Passage.PassagetypeId == null).Max(p => p.Passage.EndChapter) ?? 0;
-        int startverse = ready.Where(p => p.Section.Sequencenum == sectionstart && p.Passage.PassagetypeId == null && p.Passage.StartChapter == startchap).Min(p => p.Passage.StartVerse) ?? 0;
-        int endverse = ready.Where(p => p.Section.Sequencenum == sectionend && p.Passage.PassagetypeId == null && p.Passage.EndChapter == endchap).Max(p => p.Passage.EndVerse) ?? 0;
-        Section_start = (int)sectionstart;
-        Section_end = (int)sectionend;
+        decimal sectionstart = sections.Any() ? sections.Min(s => s.Sequencenum) : 0;
+        decimal sectionend = sections.Any() ? sections.Max(s => s.Sequencenum) : 0;
+        int startchap = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null).Min(p => p.DestinationChapter()) ?? 0;
+        int endchap = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null).Max(p => p.DestinationChapter()) ?? 0;
+        int startverse = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null && p.Startchapter == startchap).Min(p => p.Startverse) ?? 0;
+        int endverse = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null && p.Endchapter == endchap).Max(p => p.Endverse) ?? 0;
+        Section_start = (int) sectionstart;
+        Section_end = (int) sectionend;
         Verse_start = startverse;
         Verse_end = endverse;
         Title_audio = audio != null ? new Audio [] { audio } : Array.Empty<Audio>();
