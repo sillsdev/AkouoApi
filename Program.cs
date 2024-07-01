@@ -5,6 +5,7 @@ using AkouoApi.Services;
 using static AkouoApi.Utility.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
+using static System.Reflection.Metadata.BlobBuilder;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -236,5 +237,12 @@ app.MapGet("/bibles/{bibleId}/general/{book}/chapters/{chapter}/section/{section
                 new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, false, BoolParse(beta), true, chapter, section))
 ).WithName("GetBibleGeneralBookChapterSection").Produces<ApiResponse>(200);
 
+app.MapGet("/bibles/{bibleId}/general/books/all",
+                                                            (string bibleId,
+                                                            [FromQuery(Name = "book_id")] string? book_id,
+                                                            [FromQuery(Name = "beta")] string? beta,
+                                                            ILogger<Program> _logger, BookService _service) =>
+                new ApiResponse(_service.GetBibleBookAll(bibleId, book_id, false, BoolParse(beta)))
+).WithName("GetBibleGeneralBooksAll").Produces<ApiResponse>(200);
 
 app.Run();
