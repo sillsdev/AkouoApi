@@ -53,6 +53,23 @@ public class BaseService
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory);
         ;
     }
+    protected IQueryable<Published> HelpsReady(bool scripture, bool vernacularOnly, int? bid = null, string? book = null)
+    {
+        return scripture ?
+            _context.Vwobthelpsscripture
+            .Where(s => (bid == null || s.Bid == bid) &&
+                        (!vernacularOnly || s.Passagetype == null) &&
+                        (book == null || s.Book == book))
+                .Include(s => s.Mediafile)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+            : _context.Vwobthelpsgeneral
+            .Where(s => (bid == null || s.Bid == bid) &&
+                        (!vernacularOnly || s.Passagetype == null) &&
+                        (book == null || s.Book == book))
+                .Include(s => s.Mediafile)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory);
+        ;
+    }
     protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId=null)
     {
         return _context.Vwpublishedbibles
@@ -62,6 +79,15 @@ public class BaseService
                     .Include(s => s.Biblemediafile)
                     .Select(s => new Bible(s.Id, s.BibleId, s.Iso, s.Biblename, s.Description, s.Publishingdata, s.Isomediafile, s.Biblemediafile))
                     ;
+    }
+    protected IQueryable<Bible> HelpsReadyBibles(string? bibleId = null)
+    {
+        var x = _context.Vwobthelpsbibles
+                    .Where(s => bibleId == null || s.BibleId == bibleId)
+                    .Include(s => s.Isomediafile)
+                    .Include(s => s.Biblemediafile)
+                    .Select(s => new Bible(s.Id, s.BibleId, s.Iso, s.Biblename, s.Description, s.Publishingdata, s.Isomediafile, s.Biblemediafile));
+        return x;
     }
 
     protected IEnumerable<Section> ReadyVernacularSections(Bible bible, bool publishBeta)

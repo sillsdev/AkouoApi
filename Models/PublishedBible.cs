@@ -1,4 +1,6 @@
-﻿namespace AkouoApi.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AkouoApi.Models;
 
 public class PublishedBible : BaseModel
 {
@@ -20,3 +22,10 @@ public class PublishedBible : BaseModel
     public bool HasPublic { get; set; }
     public int Organizationid { get; set; }
 }
+
+[Table("Vwpublishedbibles")]
+public class VwPublishedBible : PublishedBible
+{ }
+[Table("Vwobthelpsbibles")]
+public class VwHelpsBible: PublishedBible
+{ }

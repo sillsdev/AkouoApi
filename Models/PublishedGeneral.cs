@@ -1,4 +1,6 @@
-﻿namespace AkouoApi.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AkouoApi.Models;
 
 public class PublishedGeneral: Published
 {
@@ -8,3 +10,9 @@ public class PublishedGeneral: Published
     }
 
 }
+[Table("Vwpublishedgeneral")]
+public class VwPublishedGeneral : PublishedGeneral
+{ }
+[Table("Vwobthelpsgeneral")]
+public class VwOBTHelpsGeneral : PublishedGeneral
+{ }

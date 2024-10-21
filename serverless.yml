@@ -9,7 +9,7 @@ custom:
 
 service: akouo-api-${self:custom.myStage}
 configValidationMode: warn
-frameworkVersion: ^3.19.0
+
 
 provider:
   name: aws

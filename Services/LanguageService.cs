@@ -57,8 +57,12 @@ public class LanguageService : BaseService
     {
         return GetLanguages(ReadyBibles(publishBeta).ToList().Where(o => o.Iso == iso));
     }
-
-
-    
-
+    public List<Language> GetHelpsLanguages()
+    {
+        return GetLanguages(HelpsReadyBibles().ToList());
+    }
+    public List<Language> GetHelpsLanguage(string iso)
+    {
+        return GetLanguages(HelpsReadyBibles().ToList().Where(o => o.Iso == iso));
+    }
 }
