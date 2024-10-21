@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<PublishedBible> Vwpublishedbibles => Set<PublishedBible>();
+    public DbSet<PublishedChapter> Vwpublishedchapters => Set<PublishedChapter>();
+
     public DbSet<PublishedGeneral> Vwpublishedgeneral => Set<PublishedGeneral>();
     public DbSet<PublishedScripture> Vwpublishedscripture => Set<PublishedScripture>();
 

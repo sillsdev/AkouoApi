@@ -60,7 +60,7 @@ namespace AkouoApi.Services
             int id = entity.Plan?.Id ?? entity.PlanId;
             return _cache.GetOrAdd(id, value => DirectoryName(id));
         }
-
+        /*
         public async Task<string> GetNewFileNameAsync(Mediafile mf, string suffix = "")
         {
             string ext = Path.GetExtension(mf.OriginalFile)??"";
@@ -73,11 +73,13 @@ namespace AkouoApi.Services
                     + ext
                 : newfilename;
         }
+        
         private Mediafile? Get(int id)
         {
             return _context.Mediafiles.Where(m => m.Id == id)
                 .FirstOrDefault();
         }
+        
         public string? GetFileSignedUrl(int id)
         {
             Mediafile? mf = Get(id);
@@ -87,7 +89,7 @@ namespace AkouoApi.Services
                     .SignedUrlForGet(mf.S3File ?? "", DirectoryName(mf), mf.ContentType ?? "")
                     .Message;
         }
-
+        
         public async Task<S3Response> GetFile(int id)
         {
             Mediafile? mf = Get(id);
@@ -113,6 +115,7 @@ namespace AkouoApi.Services
             response.Message = mf.OriginalFile ?? "";
             return response;
         }
+        */
         public Mediafile? GetLatest(int passageId)
         {
             return _context.Mediafiles

@@ -4,7 +4,7 @@ namespace AkouoApi.Models
 {
     public class Bible : BaseModel
     {
-        public Bible() : base() { }
+        public Bible() : base() { BibleId = "tmp";  }
         public Bible(int id,
                      string bibleId,
                      string iso,
@@ -28,7 +28,7 @@ namespace AkouoApi.Models
             AnyPublished = true;
             Archived = false;
         }
-        public string? BibleId { get; set; }
+        public string BibleId { get; set; }
         public string? Iso { get; set; }
         public string? BibleName { get; set; }
         public string? Description { get; set; }

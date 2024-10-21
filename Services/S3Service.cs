@@ -129,14 +129,14 @@ namespace AkouoApi.Services
 
     public class S3Service : IS3Service
     {
-        private readonly string USERFILES_BUCKET;
+        private readonly string PUBLISHED_BUCKET;
         private readonly IAmazonS3 _client;
         protected ILogger<S3Service> Logger { get; set; }
 
         public S3Service(IAmazonS3 client, ILoggerFactory loggerFactory)
         {
             _client = client;
-            USERFILES_BUCKET = GetVarOrThrow("SIL_TR_USERFILES_BUCKET");
+            PUBLISHED_BUCKET = GetVarOrThrow("SIL_TR_PUBLISHED_BUCKET");
             this.Logger = loggerFactory.CreateLogger<S3Service>();
         }
         
@@ -163,17 +163,18 @@ namespace AkouoApi.Services
                 ContentType = contentType,
             };
         }
-
+        /*
         private GetObjectMetadataResponse GetFileData(string key)
         {
-            GetObjectMetadataResponse data = _client.GetObjectMetadataAsync(USERFILES_BUCKET, key).Result;
+            GetObjectMetadataResponse data = _client.GetObjectMetadataAsync(PUBLISHED_BUCKET, key).Result;
             return data;
         }
+        */
         public async Task<bool> FileExistsAsync(string fileName, string folder = "")
         {
             fileName = ProperFolder(folder) + fileName;
             ListObjectsResponse response = await _client.ListObjectsAsync(
-                USERFILES_BUCKET,
+                PUBLISHED_BUCKET,
                 fileName
             );
             //ListObjects uses the passed in filename as a prefix ie. filename*, so check if we have an exact match
@@ -219,7 +220,7 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
-
+        /*
         private string SignedUrl(string key, HttpVerb action, string mimetype)
         {
             AmazonS3Client s3Client = new();
@@ -244,7 +245,7 @@ namespace AkouoApi.Services
                 throw;
             }
         }
-
+        
         public S3Response SignedUrlForGet(string fileName, string folder, string contentType)
         {
             try
@@ -280,7 +281,7 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
-
+        
         public async Task<S3Response> UploadFileAsync(
             Stream stream,
             bool overwriteifExists,
@@ -311,7 +312,7 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
-
+        
         public async Task<S3Response> RemoveFile(string fileName, string folder = "")
         {
             //var client = new AmazonS3Client(accessKey, accessSecret, Amazon.RegionEndpoint.EUCentral1);
@@ -334,6 +335,7 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
+        
         public async Task<S3Response> CopyFile(string fileName,
                                                string newFileName,
                                                string folder = "",
@@ -365,7 +367,7 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
-
+        
         public async Task<S3Response> RenameFile(
             string fileName,
             string newFileName,
@@ -387,11 +389,12 @@ namespace AkouoApi.Services
             {
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
-        }
+        } */
         public string ObjectUrl(string fileName, string folder = "")
         {
-            return (USERFILES_BUCKET + ".s3.amazonaws.com/" + ProperFolder(folder) + fileName);
+            return (PUBLISHED_BUCKET + ".s3.amazonaws.com/" + ProperFolder(folder) + fileName);
         }
+        /*
         public async Task<S3Response> MakePublic(string fileName, string folder = "")
         {
             await _client.MakeObjectPublicAsync(USERFILES_BUCKET, ProperFolder(folder) + fileName, true);
@@ -432,6 +435,7 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
+        
         public async Task<S3Response> ReadObjectDataAsync(string fileName, string folder = "", bool forWrite = false)
         {
             try
@@ -469,5 +473,6 @@ namespace AkouoApi.Services
                 return S3Response(e.Message, HttpStatusCode.InternalServerError);
             }
         }
+        */
     }
 }

@@ -19,7 +19,7 @@ namespace AkouoApi.Models
         public string? ContentType { get; set; }
         public string? Transcription { get; set; }
         public string? OriginalFile { get; set; }
-        public string? S3File { get; set; }
+        public string? PublishedAs { get; set; }
         public long Filesize { get; set; }
         public string? Topic { get; set; }
         public string? Transcriptionstate { get; set; }

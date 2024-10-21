@@ -24,6 +24,7 @@ provider:
     SIL_TR_CONNECTIONSTRING: ${file(./serverless.env.yml):${self:custom.myStage}.SIL_TR_CONNECTIONSTRING}
     SIL_TR_ORIGINSITES: ${file(./serverless.env.yml):${self:custom.myStage}.SIL_TR_ORIGINSITES}
     SIL_TR_USERFILES_BUCKET: ${file(./serverless.env.yml):${self:custom.myStage}.SIL_TR_USERFILES_BUCKET}
+    SIL_TR_PUBLISHED_BUCKET: ${file(./serverless.env.yml):${self:custom.myStage}.SIL_TR_PUBLISHED_BUCKET}
     ASPNETCORE_ENVIRONMENT: ${file(./serverless.env.yml):${self:custom.myStage}.ASPNETCORE_ENVIRONMENT}
 
 package:
