@@ -1,5 +1,6 @@
 ﻿using static AkouoApi.Utility.ResourceHelpers;
 using System.Text.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 namespace AkouoApi.Models;
 
 public class PublishedScripture : Published
@@ -28,3 +29,10 @@ public class PublishedScripture : Published
     }
     
 }
+
+[Table("Vwpublishedscripture")]
+public class VwPublishedScripture : PublishedScripture
+{ }
+[Table("Vwobthelpsscripture")]
+public class VwOBTHelpsScripture : PublishedScripture
+{ }
