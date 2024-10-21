@@ -3,6 +3,7 @@ using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Net;
 
 
 namespace AkouoApi.Services;
@@ -44,12 +45,12 @@ public class BookService : BaseService
         SectionInfo? alttitleInfo=null;
         if (bookid != null)
         {
-            Section booksection = _context.Sections.Where(s => s.Id == altbookid).FirstOrDefault() ?? new Section();
+            Section booksection = _context.Sections.Where(s => s.Id == bookid).Include(s => s.TitleMediafile).FirstOrDefault() ?? new Section();
             titleInfo = GetSection(booksection, myStuff);
         }
         if (altbookid != null)
         {
-            Section altbooksection = _context.Sections.Where(s => s.Id == bookid).FirstOrDefault() ?? new Section();
+            Section altbooksection = _context.Sections.Where(s => s.Id == altbookid).Include(s => s.TitleMediafile).FirstOrDefault() ?? new Section();
             alttitleInfo = GetSection(altbooksection, myStuff);
         }
         IEnumerable<string> movements = ReadyMovements(myStuff).Select(s => s.Name);
@@ -79,7 +80,7 @@ public class BookService : BaseService
         List<Book> books = new();
         List<Published> ready = Ready(scripture, false, beta, bible?.Id, book).ToList();
         
-        IEnumerable<string> publishedbooks = ready.Where(r => r.Passagetype == null).Select(p => p.Book ?? "").Distinct();
+        IEnumerable<string> publishedbooks = ready.Select(p => p.Book ?? "").Distinct();
         publishedbooks.ToList().ForEach(b => {
             books.Add(GetBook(ready, b));
         });
@@ -93,7 +94,7 @@ public class BookService : BaseService
         if (bible == null) return wrapper;
         List<ChapterInfo> info = wrapper.Chapters;
         IQueryable<Published> ready = Ready(scripture,false, beta, bible.Id, bookId);
-        IQueryable<Published> vernacularq = ready.Where(r => r.Passagetype == null).Include(r => r.Section);
+        IQueryable<Published> vernacularq = ready.Where(r => r.Passagetype == null).Include(r => r.Section).ThenInclude(s =>s.TitleMediafile);
         if (justthischapter != null)
             vernacularq = vernacularq.Where(p => p.Startchapter == int.Parse(justthischapter)|| p.Endchapter == int.Parse(justthischapter));
         if (justthissection != null)
@@ -135,6 +136,7 @@ public class BookService : BaseService
         IOrderedEnumerable<Published> readyPassages = ready.Where(r => r.Sectionid == s.Id).OrderBy(x => x.Sequencenum);
         PassageInfo? curPassage = null;
         bool skipPassage = false;
+        bool isPublic = readyPassages.Any(p => p.IsPublic);
         foreach (Published p in readyPassages)
         {
             if (p.Passagetype == null)
@@ -190,7 +192,7 @@ public class BookService : BaseService
 
             }
         };
-        return new SectionInfo(s, GetAudio(s.TitleMediafile), GetGraphicImages(s.Id, "section"), passages.ToArray(), sectionnotes.ToArray());
+        return new SectionInfo(s, GetAudio(s.TitleMediafile), GetGraphicImages(s.Id, "section"), passages.ToArray(), sectionnotes.ToArray(), isPublic);
     }
     public MovementWrapper GetBibleBookMovements(string bibleId, string bookId, bool scripture, bool beta, bool showSections, string? justthismovement = null, string? justthissection = null)
     {
@@ -213,30 +215,64 @@ public class BookService : BaseService
         List<Section> movements = ReadyMovements(ready, movementId).ToList();
         //WriteLog("readymovements");
 
-        if (!movements.Any())
-            return movementWrapper;
+
         Dictionary<Section, IOrderedEnumerable<Section>> allmovements = 
             MovementSections(movements, ready);
         //WriteLog("movementsections");
         List<MovementInfo> info = movementWrapper.Movements;
-        movements.ForEach(m => {
-            SectionInfo movementInfo = GetSection(m, ready);
+        if (!movements.Any())
+        {
             //WriteLog("getsection");
             List<SectionInfo> sectionInfo = new ();
+            List<Section> readySections = ready.Where(r => r.Movementid is null && r.Level == SectionLevel.Section)
+                .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
+                .OrderBy(s => s.Sequencenum).ToList();
             if (showSections)
             {
-                allmovements[m].ToList().ForEach(s => {
+                readySections.ToList().ForEach(s => {
                     if (justthissection == null || s.Id == int.Parse(justthissection))
                     {
                         sectionInfo.Add(GetSection(s, ready));
                     }
                 });
             }
-            info.Add(new MovementInfo(allmovements [m].ToList(), movementInfo.Title_audio.ElementAtOrDefault(0), movementInfo.Images, sectionInfo.ToArray(), ready, Array.IndexOf(allmovements.Keys.ToArray(), m) + 1, m, movementInfo.Audio_notes));
-        });
+            info.Add(new MovementInfo(readySections, null, Array.Empty<Image>(), sectionInfo.ToArray(), ready, 1, null, Array.Empty<AudioNote>()));
+        }
+        else
+        {
+            movements.ForEach(m => {
+                SectionInfo movementInfo = GetSection(m, ready);
+                //WriteLog("getsection");
+                List<SectionInfo> sectionInfo = new ();
+                if (showSections)
+                {
+                    allmovements [m].ToList().ForEach(s => {
+                        if (justthissection == null || s.Id == int.Parse(justthissection))
+                        {
+                            sectionInfo.Add(GetSection(s, ready));
+                        }
+                    });
+                }
+                info.Add(new MovementInfo(allmovements [m].ToList(), movementInfo.Title_audio.ElementAtOrDefault(0), movementInfo.Images, sectionInfo.ToArray(), ready, Array.IndexOf(allmovements.Keys.ToArray(), m) + 1, m, movementInfo.Audio_notes));
+            });
+        }
         //WriteLog("done");
 
         return movementWrapper;
     }
-
+    //return all the sections for the bible/book in one list
+    public List<MovementWrapper> GetBibleBookAll(string bibleId, string? bookId, bool scripture, bool beta)
+    {
+        List<MovementWrapper> all = new ();
+        Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw new Exception("Bible not found");
+        List<Book> books = GetBibleBooks(bible, scripture, beta, bookId);
+        books.ForEach(b => { 
+            if (b.Book_id != null)
+            {
+                MovementWrapper movementWrapper = GetBibleBookMovements(bibleId, b.Book_id, scripture, beta, true);
+                all.Add(movementWrapper);
+            }
+        });
+       return all;
+    }
 }

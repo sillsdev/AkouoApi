@@ -4,7 +4,7 @@ namespace AkouoApi.Models;
 
 public class SectionInfo
 {
-    public SectionInfo(Section s, Audio? audio, Image[] graphics, PassageInfo[] passageInfo, AudioNote [] audioNotes)
+    public SectionInfo(Section s, Audio? audio, Image[] graphics, PassageInfo[] passageInfo, AudioNote [] audioNotes, bool isPublic)
     {
         Id = s.Id;
         Section = (int)s.Sequencenum;
@@ -13,6 +13,7 @@ public class SectionInfo
         Images = graphics;
         Passages = passageInfo;
         Audio_notes = audioNotes;
+        IsPublic = isPublic;
     }
     public int Id { get; }
     public int Section { get; set; }
@@ -22,5 +23,6 @@ public class SectionInfo
     public PassageInfo [] Passages { get; set; } = Array.Empty<PassageInfo>();
     public string Notes_title { get; set; } = "Notes";
     public AudioNote[] Audio_notes { get; set; } = Array.Empty<AudioNote>();
+    public bool IsPublic { get; set; }
 
 }

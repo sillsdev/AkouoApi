@@ -1,6 +1,4 @@
-﻿using Amazon.S3.Model;
-using System.ComponentModel.DataAnnotations.Schema;
-using static System.Collections.Specialized.BitVector32;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AkouoApi.Models
 {
