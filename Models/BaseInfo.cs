@@ -2,14 +2,16 @@
 
 public class BaseInfo
 {
-    public BaseInfo(List<Section> sections,
+    public BaseInfo(int id,
+                    string title,
                     Audio? audio, 
                     Image [] graphics, 
-                    SectionInfo [] sectionInfo, 
+                    SectionShort [] sections,
+                    SectionInfo [] sectionInfo,
                     IEnumerable<Published> ready)
     {
-        decimal sectionstart = sections.Any() ? sections.Min(s => s.Sequencenum) : 0;
-        decimal sectionend = sections.Any() ? sections.Max(s => s.Sequencenum) : 0;
+        decimal sectionstart = sections.Any() ? sections.Min(s => s.GetSection().Sequencenum) : 0;
+        decimal sectionend = sections.Any() ? sections.Max(s => s.GetSection().Sequencenum) : 0;
         int startchap = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null).Min(p => p.DestinationChapter()) ?? 0;
         int endchap = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null).Max(p => p.DestinationChapter()) ?? 0;
         int startverse = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null && p.Startchapter == startchap).Min(p => p.Startverse) ?? 0;
@@ -21,14 +23,17 @@ public class BaseInfo
         Title_audio = audio != null ? new Audio [] { audio } : Array.Empty<Audio>();
         Images = graphics;
         Sections = sectionInfo;
+        Title = title;
+        Id = id;
     }
-    public string Text { get; set; } = "";
+    public int Id { get; }
+    public string Title { get; }
     public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
     public Image [] Images { get; set; } = Array.Empty<Image>();
     public int Section_start { get; set; }
     public int Section_end { get; set; }
     public int Verse_start { get; set; }
     public int Verse_end { get; set; }
-    public SectionInfo [] Sections { get; set; }
+    public SectionInfo [] Sections { get; }
 
 }

@@ -2,24 +2,23 @@
 
 public class MovementInfo: BaseInfo
 {
-    public MovementInfo(List<Section> sections, 
+    public MovementInfo(int id,
+                        string title,
                         Audio? audio, 
-                        Image[] graphics, 
+                        Image[] graphics,
+                        SectionShort [] sections,
                         SectionInfo[] sectionInfo, 
-                        IEnumerable<Published> ready, int index, Section? m,
+                        IEnumerable<Published> ready, int index,
                         AudioNote [] audioNotes) : 
-        base(sections, audio, graphics, sectionInfo, ready)
+        base(id, title, audio, graphics,sections, sectionInfo, ready)
     {
         int startchap = ready.Where(p => p.Sectionsequence == Section_start && p.Passagetype == null).Select(p => (int?)p.DestinationChapter()).Min() ?? 0;
         int endchap = ready.Where(p => p.Sectionsequence == Section_end && p.Passagetype == null).Select(p => (int?)p.DestinationChapter()).Max() ?? 0;
         Chapter_start = startchap;
         Chapter_end = endchap;
-        Id = m?.Id ?? 0;
         Movement = index;
-        Text = m?.Name ?? "";
         Audio_notes = audioNotes;
     }
-    public int Id { get; }
     public int Movement { get; set; }
     public int Chapter_start { get; set; }
     public int Chapter_end { get; set; }

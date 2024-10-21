@@ -2,28 +2,24 @@
 
 public class ChapterInfo:BaseInfo
 {
-    public ChapterInfo(List<Section> sections, 
+    public ChapterInfo(ChapterShort myShort,
+                       string title,
                        IOrderedEnumerable<Published> passages, 
-                       IEnumerable<Section> movements,
+                       IEnumerable<MovementShort> movements,
                        Audio? audio, 
-                       Image [] graphics, 
-                       SectionInfo [] sectionInfo, 
+                       Image [] graphics,
+                       SectionInfo [] sectionInfo,
                        List<AudioNote> audio_notes, 
-                       IEnumerable<Published> ready, 
-                       int index, 
-                       string text) :
-    base(sections, audio, graphics, sectionInfo, ready)
+                       IEnumerable<Published> ready) :
+    base(myShort.Id, title, audio, graphics, myShort.Sections, sectionInfo, ready)
     {
-        Id = index; 
-        Chapter = index;
-        Text = text;
+        Chapter = myShort.Chapter;
         Movement_start = movements.FirstOrDefault()?.Id??0;
         Movement_end = movements.LastOrDefault()?.Id ?? 0;
         Passage_start = (int)passages.First().Id;
         Passage_end = (int)passages.Last().Id;
         Audio_notes = audio_notes;
     }
-    public int Id { get; }
     public int Chapter { get; set; }
     public int Movement_start { get; set; }
     public int Movement_end { get; set; }

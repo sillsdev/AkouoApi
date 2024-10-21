@@ -13,7 +13,7 @@ public class Audio
         Id = media.Id;
         Format = media.ContentType ?? "";
         Timestamp = media.DateUpdated.ToUniversalTime();
-        Audio_filename = media.S3File ?? "";
+        Audio_filename = media.PublishedAs ?? "";
         Url = !url.StartsWith("https://") ? "https://" + url : url;
         Duration = media.Duration??0;                  
     }

@@ -7,7 +7,7 @@ public abstract class Published: BaseModel
         Book = "";
         Contenttype = "";
         Reference = "";
-        S3file = "";
+        PublishedAs = "";
     }
     public int Bid { get; set; }
     public int Planid { get; set; }
@@ -43,7 +43,7 @@ public abstract class Published: BaseModel
     public decimal? Duration { get; set; }
     public string? Contenttype { get; set; }
     public string? Transcription { get; set; }
-    public string? S3file { get; set; }
+    public string? PublishedAs { get; set; }
     public decimal Filesize { get; set; }
     public DateTime Datecreated { get; set; }
     public abstract int? DestinationChapter();

@@ -42,15 +42,20 @@ public class BaseService
                         (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
                         (book == null || s.Book == book))
+                .Include(s => s.Section)
                 .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                .Include(s => s.Sharedresource)
+                        .ThenInclude(r => r!.ArtifactCategory)
+                .Include(s => s.Sharedresource)
+                        .ThenInclude(r => r!.TitleMediafile)
             : _context.Vwpublishedgeneral
             .Where(s => (s.IsPublic || publishBeta) &&
                         (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
                         (book == null || s.Book == book))
                 .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory);
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
         ;
     }
     protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId=null)
@@ -119,19 +124,39 @@ public class BaseService
     {
         return ready.Any(r=> r.Movementid != null);
     }
-    protected List<Section> ReadyMovements(List<Published> ready, int? movementId=null)
+    protected List<MovementShort> ReadyMovements(List<Published> ready, int? movementId=null)
     {
+        List<MovementShort> ret = new();
         IEnumerable<int?> movementids = ready.Where(p => (movementId == null || p.Movementid == movementId)).Select(r => r.Movementid).Distinct();
-        List<Section> movements = _context.Sections.Where(s => movementids.Contains(s.Id)).OrderBy(s => s.Sequencenum).ToList();
-        for (int ix = 0; ix < movements.Count(); ix++)
+        if (!movementids.Any())
         {
-            movements[ix].State = ix.ToString();
+            List<SectionShort> sections = new ();
+            IOrderedEnumerable<Section> readySections = ready.Where(r => r.Movementid is null && r.Level == SectionLevel.Section)
+                .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
+                .OrderBy(s => s.Sequencenum);
+            readySections.ToList().ForEach(s => sections.Add(new SectionShort(s)));
+            ret.Add(new MovementShort(null, sections.ToArray()));
         }
-        return movements;
+        else
+        {
+            List<Section> movements = _context.Sections.Where(s => movementids.Contains(s.Id)).OrderBy(s => s.Sequencenum).ToList();
+            for (int ix = 0; ix < movements.Count(); ix++)
+            {
+                Section m = movements[ix];
+                List<SectionShort> sections = new ();
+                m.State = ix.ToString();
+                IOrderedEnumerable<Section> readySections  = ready.Where(r => r.Movementid == m.Id && r.Level == SectionLevel.Section)
+                .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
+                .OrderBy(s => s.Sequencenum);
+                readySections.ToList().ForEach(s => sections.Add(new SectionShort(s)));
+                ret.Add(new MovementShort(m, sections.ToArray()));
+            }
+        }
+        return ret;
     }
-    protected Dictionary<Section, IOrderedEnumerable<Section>> MovementSections(List<Section> movements, List<Published> ready)
+    protected Dictionary<MovementShort, IOrderedEnumerable<Section>> MovementSections(List<MovementShort> movements, List<Published> ready)
     {
-        Dictionary<Section, IOrderedEnumerable<Section>> allmovements = new();
+        Dictionary<MovementShort, IOrderedEnumerable<Section>> allmovements = new();
         movements.ForEach(m => {
             allmovements.Add(m, ready.Where(r => r.Movementid == m.Id && r.Level == SectionLevel.Section)
                 .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
@@ -141,11 +166,10 @@ public class BaseService
     }
     protected Audio? GetAudio(Mediafile? media)
     {
-        return media == null || media.S3File == null
+        return media == null || media.PublishedAs == null
             ? null
             : new Audio(media,
-                  _s3Service.ObjectUrl(media.S3File,
-                                      _mediafileService.DirectoryName(media)));
+                  _s3Service.ObjectUrl(media.PublishedAs));
     }
     protected Image[] GetGraphicImages(int resourceid, string resourcetype)
     {

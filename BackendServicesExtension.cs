@@ -29,19 +29,6 @@ namespace AkouoApi.Services;
         services.AddScoped<BookService>();
         services.AddScoped<LanguageService>();
         services.AddScoped<MediafileService>();
-        /*
-            services.AddScoped<ArtifactCategoryService>();
-            services.AddScoped<GraphicService>();
-            services.AddScoped<IntellectualPropertyService>();
-            services.AddScoped<OrganizationService>();
-            services.AddScoped<PassageService>();
-            services.AddScoped<PlanService>();
-            services.AddScoped<ProjectService>();
-            services.AddScoped<SectionService>();
-            services.AddScoped<SharedResourceService>();
-            services.AddScoped<SharedResourceReferenceService>();
-            services.AddScoped<UserService>();
-        */
         services.AddSingleton<IS3Service, S3Service>();
         services.AddAWSService<IAmazonS3>();
 
