@@ -44,10 +44,8 @@ public class BaseService
                         (book == null || s.Book == book))
                 .Include(s => s.Section)
                 .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource)
-                        .ThenInclude(r => r!.ArtifactCategory)
-                .Include(s => s.Sharedresource)
-                        .ThenInclude(r => r!.TitleMediafile)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
             : _context.Vwpublishedgeneral
             .Where(s => (s.IsPublic || publishBeta) &&
                         (bid == null || s.Bid == bid) &&
@@ -65,14 +63,19 @@ public class BaseService
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
                         (book == null || s.Book == book))
+                .Include(s => s.Section)
                 .Include(s => s.Mediafile)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
             : _context.Vwobthelpsgeneral
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
                         (book == null || s.Book == book))
+                .Include(s => s.Section)
                 .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory);
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
+
         ;
     }
     protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId=null)
