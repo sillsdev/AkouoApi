@@ -56,9 +56,9 @@ public class BaseService
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
         ;
     }
-    protected IQueryable<Published> HelpsReady(bool scripture, bool vernacularOnly, int? bid = null, string? book = null)
+    protected IQueryable<Published> HelpsReady(bool vernacularOnly, int? bid = null, string? book = null)
     {
-        return scripture ?
+        return // scripture ?
             _context.Vwobthelpsscripture
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
@@ -67,6 +67,7 @@ public class BaseService
                 .Include(s => s.Mediafile)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
+            /*
             : _context.Vwobthelpsgeneral
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
@@ -75,7 +76,7 @@ public class BaseService
                 .Include(s => s.Mediafile)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
-
+            */
         ;
     }
     protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId=null)
@@ -90,7 +91,7 @@ public class BaseService
     }
     protected IQueryable<Bible> HelpsReadyBibles(string? bibleId = null)
     {
-        var x = _context.Vwobthelpsbibles
+        IQueryable<Bible> x = _context.Vwobthelpsbibles
                     .Where(s => bibleId == null || s.BibleId == bibleId)
                     .Include(s => s.Isomediafile)
                     .Include(s => s.Biblemediafile)
@@ -156,7 +157,7 @@ public class BaseService
     protected List<MovementShort> ReadyMovements(List<Published> ready, int? movementId=null)
     {
         List<MovementShort> ret = new();
-        IEnumerable<int?> movementids = ready.Where(p => (movementId == null || p.Movementid == movementId)).Select(r => r.Movementid).Distinct();
+        IEnumerable<int?> movementids = ready.Where(p => p.Movementid is not null && (movementId == null || p.Movementid == movementId)).Select(r => r.Movementid).Distinct();
         if (!movementids.Any())
         {
             List<SectionShort> sections = new ();

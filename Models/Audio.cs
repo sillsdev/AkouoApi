@@ -11,7 +11,7 @@ public class Audio
     public Audio(Mediafile media, string url)
     {
         Id = media.Id;
-        Format = media.ContentType ?? "";
+        Format = media.PublishedAs != "" ? "audio/mpeg" : media.ContentType ?? "";
         Timestamp = media.DateUpdated.ToUniversalTime();
         Audio_filename = media.PublishedAs ?? "";
         Url = !url.StartsWith("https://") ? "https://" + url : url;

@@ -118,8 +118,9 @@ public class BibleService : BaseService
         {
             obts.Add(new OBTType(OBTTypeEnum.extra));
         }
-        obts.Add(new OBTType(OBTTypeEnum.title));
-
+        if (all.Where(a => a.Altbookmediafileid is not null || a.Bookmediafileid is not null || a.Titlemediafileid is not null).Any() || 
+            extra.Where(e => e.Altbookmediafileid is not null || e.Bookmediafileid is not null || e.Titlemediafile is not null).Any())
+            obts.Add(new OBTType(OBTTypeEnum.title));
 
         obts.Sort();
         return obts;
@@ -138,8 +139,8 @@ public class BibleService : BaseService
     public List<OBTType> GetHelpsOBTTypes(string bibleId)
     {
         Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw (new Exception("Bible not found"));
-        List<Published> all = HelpsReady(true, false, bible.Id).ToList();
-        List<Published> extra = HelpsReady(false, false, bible.Id).ToList();
+        List<Published> all = HelpsReady(false, bible.Id).ToList();
+        List<Published> extra = new();
         return GetOBTTypes(all, extra);
     }
     private List<NoteCategoryInfo> GetNoteCategories(int orgId, IEnumerable<Published> scripture, IEnumerable<Published> general)
@@ -188,9 +189,8 @@ public class BibleService : BaseService
     {
         if (bible != null)
         {
-            IEnumerable<Published> scripture = HelpsReady(true,false, bible.Id).ToList().Where(p => p.Passagetype == NOTE).ToList();
-            IEnumerable<Published> general = HelpsReady(false,false, bible.Id).ToList().Where(p => p.Passagetype == NOTE).ToList();
-            return GetNoteCategories(bible.Organizationid, scripture, general);
+            IEnumerable<Published> all = HelpsReady(false, bible.Id).ToList().Where(p => p.Passagetype == NOTE).ToList();
+            return GetNoteCategories(bible.Organizationid, all, new List<Published>());
         }
         else
             throw (new Exception("Bible not found"));

@@ -90,10 +90,10 @@ public class BookService : BaseService
         Bible? bible = ReadyBibles(beta, bibleId).FirstOrDefault();
         return bible != null ? GetBibleBooks(bible, scripture, beta, book) : throw new Exception("Bible not found");
     }
-    public List<Book> GetHelpsBooks(string bibleId, bool scripture, string? book)
+    public List<Book> GetHelpsBooks(string bibleId, string? book)
     {
         Bible? bible = HelpsReadyBibles(bibleId).FirstOrDefault();
-        return bible != null ? GetHelpsBooks(bible, scripture, book) : throw new Exception("Bible not found");
+        return bible != null ? GetHelpsBooks(bible, book) : throw new Exception("Bible not found");
     }
     private List<Book> GetBooks(string bibleId, List<Published> ready)
     {
@@ -112,16 +112,18 @@ public class BookService : BaseService
     {
         return GetBooks(bible.BibleId, Ready(scripture, false, beta, bible?.Id, book).ToList());
     }
-    private List<Book> GetHelpsBooks(Bible bible, bool scripture, string? book)
+    private List<Book> GetHelpsBooks(Bible bible, string? book)
     {
-        return GetBooks(bible.BibleId, HelpsReady(scripture, false, bible?.Id, book).ToList());
+        return GetBooks(bible.BibleId, HelpsReady(false, bible?.Id, book).ToList());
     }
     private ChapterWrapper GetBookChapters(string bibleId, IQueryable<Published> ready, string bookId, bool sections, string? justthischapter = null, string? justthissection = null)
     {
         ChapterWrapper wrapper = new(bookId);
         List<ChapterInfo> info = wrapper.Chapters;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         IQueryable<Published> vernacularq = ready.Where(r => r.Passagetype == null).Include(r => r.Section).ThenInclude(s =>s.TitleMediafile);
-         if (justthissection != null)
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        if (justthissection != null)
             vernacularq = vernacularq.Where(p => p.Sectionid == int.Parse(justthissection));
         //if there are passages that cross chapters, we may have more than one chapter number
         ChapterShort[] chapters = ReadyChapters(bibleId, vernacularq,bookId).Where(c => justthischapter == null || c.Chapter == int.Parse(justthischapter)|| c.Id == int.Parse(justthischapter)).ToArray();
@@ -163,10 +165,10 @@ public class BookService : BaseService
         IQueryable<Published> ready = Ready(scripture,false, beta, bible.Id, bookId);
         return GetBookChapters(bibleId, ready, bookId, sections, justthischapter, justthissection);
     }
-    public ChapterWrapper GetHelpsBookChapters(string bibleId, string bookId, bool scripture, bool sections, string? justthischapter = null, string? justthissection = null)
+    public ChapterWrapper GetHelpsBookChapters(string bibleId, string bookId, bool sections, string? justthischapter = null, string? justthissection = null)
     {
         Bible bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw new Exception("Bible not found");
-        IQueryable<Published> ready = HelpsReady(scripture,false, bible.Id, bookId);
+        IQueryable<Published> ready = HelpsReady(false, bible.Id, bookId);
         return GetBookChapters(bibleId, ready, bookId, sections, justthischapter, justthissection);
     }
     private SectionInfo GetSectionInfo(Section s, List<Published> ready, List<AudioNote>? chapternotes=null,  int chapter=0) 
@@ -293,11 +295,11 @@ public class BookService : BaseService
         List<Published> ready = Ready(scripture,false, beta, bible.Id, bookId).Include(r => r.Titlemediafile).ToList();
         return GetBookMovements(bibleId, ready, bookId, showSections, justthismovement, justthissection);
     }
-    public MovementWrapper GetHelpsBookMovements(string bibleId, string bookId, bool scripture,bool showSections, string? justthismovement = null, string? justthissection = null)
+    public MovementWrapper GetHelpsBookMovements(string bibleId, string bookId, bool showSections, string? justthismovement = null, string? justthissection = null)
     {
         //WriteLog("GetHelpsBookMovements");
         Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw (new Exception("Bible not found"));
-        List<Published> ready = HelpsReady(scripture,false, bible.Id, bookId).Include(r => r.Titlemediafile).ToList();
+        List<Published> ready = HelpsReady(false, bible.Id, bookId).Include(r => r.Titlemediafile).ToList();
         return GetBookMovements(bibleId, ready, bookId, showSections, justthismovement, justthissection);
     }
 
