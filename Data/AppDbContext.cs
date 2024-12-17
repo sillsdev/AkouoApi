@@ -1,16 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
-using AkouoApi.Models;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AkouoApi.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
     #region DBSet
     public DbSet<Artifactcategory> Artifactcategorys => Set<Artifactcategory>();
     public DbSet<Bible> Bibles => Set<Bible>();
@@ -86,7 +83,7 @@ public class AppDbContext : DbContext
             .WithMany().HasForeignKey(o => o.PassageId);
         mf.HasOne(o => o.ResourcePassage)
             .WithMany().HasForeignKey(o => o.ResourcePassageId);
-        
+
         EntityTypeBuilder<Organization> orgEntity = modelBuilder.Entity<Organization>();
         orgEntity.HasKey(o => o.Id);
 

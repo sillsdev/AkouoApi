@@ -1,21 +1,14 @@
 ﻿using AkouoApi.Data;
 using AkouoApi.Models;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 
 namespace AkouoApi.Services;
 
-public class LanguageService : BaseService
+public class LanguageService(ILogger<LanguageService> logger,
+                       AppDbContext context,
+                       IS3Service s3Service,
+                       MediafileService mediafileService) : BaseService(logger, context, s3Service, mediafileService)
 {
-
-    public LanguageService(ILogger<LanguageService> logger, 
-                           AppDbContext context, 
-                           IS3Service s3Service,
-                           MediafileService mediafileService) : base(logger, context, s3Service, mediafileService)
-    {
-
-    }
-
     private static string? GetBibleLanguage(Bible? bible)
     {
         if (bible == null)
@@ -27,7 +20,7 @@ public class LanguageService : BaseService
     private List<Language> GetLanguages(IEnumerable<Bible> readybibles)
     {
         List<string> isos = readybibles.Select(o=> o.Iso??"").Distinct().ToList();
-        List<Language> languages = new();
+        List<Language> languages = [];
         for (int ix = 0; ix < isos.Count; ix++)
         {
             string iso = isos[ix];
@@ -38,10 +31,10 @@ public class LanguageService : BaseService
             //find the number of bibles for each language
             int bibles = isoBibles.Select(o=> o.BibleId).Distinct().Count();
             Audio? audio=GetAudio(isomedia);
-            
+
             Language lang = new(iso,
                                 name,
-                                audio != null ? new Audio [] { audio }: Array.Empty<Audio>(),
+                                audio != null ? [audio]: [],
                                 bibles);
             languages.Add(lang);
         };
@@ -51,7 +44,7 @@ public class LanguageService : BaseService
 
     public List<Language> GetLanguages(bool publishBeta)
     {
-        return GetLanguages(ReadyBibles(publishBeta).ToList());
+        return GetLanguages([.. ReadyBibles(publishBeta)]);
     }
     public List<Language> GetLanguage(string iso, bool publishBeta)
     {
@@ -59,7 +52,7 @@ public class LanguageService : BaseService
     }
     public List<Language> GetHelpsLanguages()
     {
-        return GetLanguages(HelpsReadyBibles().ToList());
+        return GetLanguages([.. HelpsReadyBibles()]);
     }
     public List<Language> GetHelpsLanguage(string iso)
     {

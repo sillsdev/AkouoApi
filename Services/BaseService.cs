@@ -56,7 +56,7 @@ public class BaseService
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
         ;
     }
-    protected IQueryable<Published> HelpsReady(bool vernacularOnly, int? bid = null, string? book = null)
+    protected IQueryable<Published>  HelpsReady(bool vernacularOnly, int? bid = null, string? book = null)
     {
         return // scripture ?
             _context.Vwobthelpsscripture

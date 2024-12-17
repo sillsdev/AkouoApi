@@ -1,30 +1,31 @@
-using Amazon.S3;
 using AkouoApi.Data;
+using AkouoApi.Services;
+using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
 using static AkouoApi.Utility.EnvironmentHelpers;
 
-namespace AkouoApi.Services;
+namespace AkouoApi;
 
-    public static class BackendServiceExtension
+public static class BackendServiceExtension
+{
+    public static object AddApiServices(this IServiceCollection services)
     {
-        public static object AddApiServices(this IServiceCollection services)
-        {
-            // Add services to the container.
-            services.AddHttpContextAccessor();
-            //services.AddScoped<AppDbContextResolver>();
+        // Add services to the container.
+        services.AddHttpContextAccessor();
+        //services.AddScoped<AppDbContextResolver>();
 
-            // Add the Entity Framework Core DbContext like you normally would.
-            services.AddDbContext<AppDbContext>(options => {
-                options.UseNpgsql(GetConnectionString());
-            });
-        
-            services.RegisterServices();
+        // Add the Entity Framework Core DbContext like you normally would.
+        services.AddDbContext<AppDbContext>(options => {
+            options.UseNpgsql(GetConnectionString());
+        });
 
-            return services;
-        }
+        services.RegisterServices();
 
-        public static void RegisterServices(this IServiceCollection services)
-        {
+        return services;
+    }
+
+    public static void RegisterServices(this IServiceCollection services)
+    {
         services.AddScoped<BibleService>();
         services.AddScoped<BookService>();
         services.AddScoped<LanguageService>();
@@ -34,8 +35,8 @@ namespace AkouoApi.Services;
 
     }
 
-        private static string GetConnectionString()
-        {
-            return GetVarOrDefault("SIL_TR_CONNECTIONSTRING", "");
-        }
+    private static string GetConnectionString()
+    {
+        return GetVarOrDefault("SIL_TR_CONNECTIONSTRING", "");
     }
+}

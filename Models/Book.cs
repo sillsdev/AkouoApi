@@ -1,6 +1,6 @@
 ﻿namespace AkouoApi.Models;
 
-public class Book :BaseModel, IComparable<Book>
+public class Book : BaseModel, IComparable<Book>
 {
     private readonly Dictionary<string, BookInfo> BookInfo = new ()
     {
@@ -124,24 +124,25 @@ public class Book :BaseModel, IComparable<Book>
 
     private BookInfo? GetBookInfo()
     {
-        return Book_id is null || !BookInfo.ContainsKey(Book_id) ? null : BookInfo [Book_id];
+        BookInfo.TryGetValue(Book_id ?? "", out BookInfo? info);
+        return info;
     }
     public string? Book_id { get; set; }  //"GEN"
     public string? Name { get; set; }
     public string? Name_long { get; set; }
     public string? Name_alt { get; set; }
     public int? Testament_order {
-        get { return (GetBookInfo()?.TestamentOrder)??100; }   
-        }
+        get { return (GetBookInfo()?.TestamentOrder) ?? 100; }
+    }
     public string? Book_order { // "A01"
         get {
             BookInfo? info = GetBookInfo();
             return (info == null ? Book_id : info.Testament == "OT" ? "A" : "B") + info?.TestamentOrder.ToString().PadLeft(2, '0');
-        } 
+        }
     }
     public string? Book_group { // "The Law"
-        get { return (GetBookInfo()?.BookGroup)??"extras"; }
-    } 
+        get { return (GetBookInfo()?.BookGroup) ?? "extras"; }
+    }
     public ChapterShort [] Chapters { get; set; } = Array.Empty<ChapterShort>();
     public MovementShort [] Movements { get; set; } = Array.Empty<MovementShort>();
     public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
@@ -158,7 +159,7 @@ public class Book :BaseModel, IComparable<Book>
         return compare == null ||
             (compare.Book_order == null && Book_order != null) ? 1 :
             (Book_order != null && compare.Book_order != null) ?
-            Book_order.CompareTo(compare.Book_order) : 
-            (Name??Book_id??"").CompareTo(compare.Book_id);
+            Book_order.CompareTo(compare.Book_order) :
+            (Name ?? Book_id ?? "").CompareTo(compare.Book_id);
     }
 }
