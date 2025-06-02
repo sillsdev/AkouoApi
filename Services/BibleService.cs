@@ -134,8 +134,8 @@ public class BibleService(ILogger<LanguageService> logger,
     public List<OBTType> GetHelpsOBTTypes(string bibleId)
     {
         Bible? bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw (new Exception("Bible not found"));
-        List<Published> all = [.. HelpsReady(false, bible.Id)];
-        List<Published> extra = [];
+        List<Published> all = [.. HelpsReady(true, false, bible.Id)];
+        List<Published> extra = [.. HelpsReady(false, false, bible.Id)];
         return GetOBTTypes(all, extra);
     }
     private List<NoteCategoryInfo> GetNoteCategories(int orgId, IEnumerable<Published> scripture, IEnumerable<Published> general)
@@ -186,7 +186,7 @@ public class BibleService(ILogger<LanguageService> logger,
     {
         if (bible != null)
         {
-            IEnumerable<Published> all = HelpsReady(false, bible.Id).ToList().Where(p => p.Passagetype == NOTE).ToList();
+            IEnumerable<Published> all = HelpsReady(true, false, bible.Id).ToList().Where(p => p.Passagetype == NOTE).ToList();
             return GetNoteCategories(bible.Organizationid, all, []);
         }
         else

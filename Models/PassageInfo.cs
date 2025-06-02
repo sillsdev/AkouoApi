@@ -1,28 +1,18 @@
-﻿using AkouoApi.Services;
+﻿namespace AkouoApi.Models;
 
-namespace AkouoApi.Models;
-
-public class PassageBase
+public class PassageBase(Passage p, OBTTypeEnum obtt, Audio? audio, string? text)
 {
-    public PassageBase(Passage p, OBTTypeEnum obtt, Audio? audio, string? text)
-    {
-        Id = p.Id;
-        Passage = p.Sequencenum;
-        Text = text ?? ""; 
-        Audio = audio != null ? new Audio [] { audio } : Array.Empty<Audio>();
-        Obt_type = obtt.ToString();
-    }
-    public int Id { get; }
-    public decimal Passage { get; set; }
-    public string Text { get; set; } = "";
-    public string Obt_type { get; set; } 
-    public Audio [] Audio { get; set; } = Array.Empty<Audio>();
+    public int Id { get; } = p.Id;
+    public decimal Passage { get; set; } = p.Sequencenum;
+    public string Text { get; set; } = text ?? "";
+    public string Obt_type { get; set; } = obtt.ToString();
+    public Audio [] Audio { get; set; } = audio != null ? [audio] : [];
 }
-public class PassageInfo: PassageBase
+public class PassageInfo : PassageBase
 {
-    public PassageInfo(Passage p, OBTTypeEnum obtt, Audio? audio, string? text):base(p,obtt, audio, text)
+    public PassageInfo(Passage p, OBTTypeEnum obtt, Audio? audio, string? text) : base(p, obtt, audio, text)
     {
-        Chapter_start = p.StartChapter??0;
+        Chapter_start = p.StartChapter ?? 0;
         Verse_start = p.StartVerse ?? 0;
         Chapter_end = p.EndChapter ?? Chapter_start;
         Verse_end = p.EndVerse ?? Verse_start;
@@ -31,22 +21,15 @@ public class PassageInfo: PassageBase
     public int Verse_start { get; set; }
     public int Chapter_end { get; set; }
     public int Verse_end { get; set; }
-    public List<AudioNote> Audio_notes { get; set; } = new();
+    public List<AudioNote> Audio_notes { get; set; } = [];
 }
 
-public class AudioNote : PassageBase
+public class AudioNote(Passage p, OBTTypeEnum obtt, Audio? audio, string? text, Sharedresource? sr, Image [] images, Audio? titleaudio) : PassageBase(p, obtt, audio, text)
 {
-    public AudioNote(Passage p, OBTTypeEnum obtt, Audio? audio, string? text, Sharedresource? sr, Image [] images, Audio? titleaudio) :base(p, obtt, audio, text)
-    {
-        Images = images;
-        Title = sr?.Title ?? "";
-        Title_audio = titleaudio != null ? new Audio [] { titleaudio } : Array.Empty<Audio>();
-        Note_category = sr?.ArtifactCategory?.Categoryname ?? "audio_note";
-        Note_category_id = sr?.ArtifactCategory?.Id??0;
-    }
-    public Image [] Images { get; set; } = Array.Empty<Image>();
-    public string Title { get; set; } = "";
-    public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
-    public string Note_category { get; set; } = "audio_note";
-    public int Note_category_id { get; set; } = 1;
+    public Audio [] Title_audio { get; set; } = titleaudio == null ? [] : [titleaudio];
+    public Image [] Images { get; set; } = images;
+    public string Title { get; set; } = sr?.Title ?? p.Reference ?? "";
+    public string Note_category { get; set; } = sr?.ArtifactCategory?.Categoryname ?? "audio_note";
+    public int Note_category_id { get; set; } = sr?.ArtifactCategory?.Id ?? 0;
+    public string LinkUrl { get; set; } = sr?.LinkUrl ?? "";
 }

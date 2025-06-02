@@ -24,9 +24,10 @@
 */
     public class BibleShort : BaseModel, IComparable<BibleShort>
     {
-        public BibleShort(Bible bible, Audio[] audio) {
+        public BibleShort(Bible bible, Audio [] audio)
+        {
             Id = bible.Id;
-            Bible_id = bible.BibleId??"";
+            Bible_id = bible.BibleId ?? "";
             Iso = bible.Iso;
             Name = bible.BibleName;
             Title_audio = audio;
@@ -35,8 +36,8 @@
         public string? Abbr => Bible_id? [3..] ?? "";
         public string? Iso { get; set; }
         public string? Name { get; set; }
-        public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
-        public List<AudioNote> Audio_notes { get; set; } = new();
+        public Audio [] Title_audio { get; set; } = [];
+        public List<AudioNote> Audio_notes { get; set; } = [];
         public int CompareTo(BibleShort? compare)
         {
             // A null value means that this object is greater.

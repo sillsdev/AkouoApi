@@ -143,12 +143,12 @@ public class Book : BaseModel, IComparable<Book>
     public string? Book_group { // "The Law"
         get { return (GetBookInfo()?.BookGroup) ?? "extras"; }
     }
-    public ChapterShort [] Chapters { get; set; } = Array.Empty<ChapterShort>();
-    public MovementShort [] Movements { get; set; } = Array.Empty<MovementShort>();
-    public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
-    public Audio [] Title_audio_alt { get; set; } = Array.Empty<Audio>();
-    public Image [] Images { get; set; } = Array.Empty<Image>();
-    public AudioNote [] Audio_notes { get; set; } = Array.Empty<AudioNote>();
+    public Audio [] Title_audio { get; set; } = [];
+    public Audio [] Title_audio_alt { get; set; } = [];
+    public ChapterShort [] Chapters { get; set; } = [];
+    public MovementShort [] Movements { get; set; } = [];
+    public Image [] Images { get; set; } = [];
+    public AudioNote [] Audio_notes { get; set; } = [];
     public string? Testament {
         get { return GetBookInfo()?.Testament; }
     }

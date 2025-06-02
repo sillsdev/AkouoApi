@@ -1,15 +1,10 @@
 ﻿namespace AkouoApi.Models;
 
-public class SectionShort
+public class SectionShort(Section s)
 {
-    private readonly Section _section;
-    public SectionShort(Section s) 
-    {
-        _section = s;
-        Id = s.Id;
-        Title = s.Name;
-    }
-    public int Id { get; }
-    public string Title { get; } = "";
+    private readonly Section _section = s;
+
+    public int Id { get; } = s.Id;
+    public string Title { get; } = s.Name;
     public Section GetSection() => _section;
 }

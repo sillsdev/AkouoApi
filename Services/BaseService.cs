@@ -1,64 +1,55 @@
 ﻿using AkouoApi.Data;
 using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 
 namespace AkouoApi.Services;
 public class MovementMaps
 {
-    public Dictionary<Section, Section> BySection { get; set; } = new();
-    public Dictionary<Section, List<Section>> ByMovement { get; set; } = new();
+    public Dictionary<Section, Section> BySection { get; set; } = [];
+    public Dictionary<Section, List<Section>> ByMovement { get; set; } = [];
 }
-public class BaseService
+public class BaseService(ILogger<LanguageService> logger,
+                       AppDbContext context,
+                       IS3Service s3Service,
+                       MediafileService mediafileService)
 {
-    protected readonly ILogger<LanguageService> _logger;
-    protected readonly AppDbContext _context;
-    protected readonly IS3Service _s3Service;
-    protected readonly MediafileService _mediafileService;
-    protected readonly ConcurrentDictionary<int,IEnumerable<Published>> _cacheVernacularReady;
+    protected readonly ILogger<LanguageService> _logger = logger;
+    protected readonly AppDbContext _context = context;
+    protected readonly IS3Service _s3Service = s3Service;
+    protected readonly MediafileService _mediafileService = mediafileService;
+    protected readonly ConcurrentDictionary<int,IEnumerable<Published>> _cacheVernacularReady = new();
     protected const string NOTE = "NOTE";
-    protected const string CHAPTER = "CHNUM"; 
-    
-    public BaseService(ILogger<LanguageService> logger,
-                           AppDbContext context,
-                           IS3Service s3Service,
-                           MediafileService mediafileService)
-    {
-        _logger = logger;
-        _context = context;
-        _s3Service = s3Service;
-        _mediafileService = mediafileService;
-        _cacheVernacularReady = new();
-    }
+    protected const string CHAPTER = "CHNUM";
+
     //This gets the vernacular and notes and chapters
-    
+
     protected IQueryable<Published> Ready(bool scripture, bool vernacularOnly, bool publishBeta, int? bid = null, string? book = null)
     {
-        return scripture ? 
-            _context.Vwpublishedscripture
-            .Where(s => (s.IsPublic || publishBeta) &&
-                        (bid == null || s.Bid == bid) &&
-                        (!vernacularOnly || s.Passagetype == null) &&
-                        (book == null || s.Book == book))
-                .Include(s => s.Section)
-                .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
-            : _context.Vwpublishedgeneral
-            .Where(s => (s.IsPublic || publishBeta) &&
-                        (bid == null || s.Bid == bid) &&
-                        (!vernacularOnly || s.Passagetype == null) &&
-                        (book == null || s.Book == book))
-                .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
-        ;
+        return scripture ?
+             _context.Vwpublishedscripture
+             .Where(s => (s.IsPublic || publishBeta) &&
+                         (bid == null || s.Bid == bid) &&
+                         (!vernacularOnly || s.Passagetype == null) &&
+                         (book == null || s.Book == book))
+                 .Include(s => s.Section)
+                 .Include(s => s.Mediafile)
+                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
+             : _context.Vwpublishedgeneral
+             .Where(s => (s.IsPublic || publishBeta) &&
+                         (bid == null || s.Bid == bid) &&
+                         (!vernacularOnly || s.Passagetype == null) &&
+                         (book == null || s.Book == book))
+                 .Include(s => s.Mediafile)
+                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
+                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile);
+
     }
-    protected IQueryable<Published>  HelpsReady(bool vernacularOnly, int? bid = null, string? book = null)
+    protected IQueryable<Published> HelpsReady(bool scripture, bool vernacularOnly, int? bid = null, string? book = null)
     {
-        return // scripture ?
+        return scripture ?
             _context.Vwobthelpsscripture
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
@@ -67,7 +58,7 @@ public class BaseService
                 .Include(s => s.Mediafile)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
-            /*
+
             : _context.Vwobthelpsgeneral
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
@@ -76,13 +67,12 @@ public class BaseService
                 .Include(s => s.Mediafile)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
-            */
         ;
     }
-    protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId=null)
+    protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId = null)
     {
         return _context.Vwpublishedbibles
-                    .Where(s => (publishBeta || s.HasPublic) && 
+                    .Where(s => (publishBeta || s.HasPublic) &&
                            (bibleId == null || s.BibleId == bibleId))
                     .Include(s => s.Isomediafile)
                     .Include(s => s.Biblemediafile)
@@ -101,19 +91,19 @@ public class BaseService
 
     protected IEnumerable<Section> ReadyVernacularSections(Bible bible, bool publishBeta)
     {
-        return _context.Vwpublishedscripture
+        return [.. _context.Vwpublishedscripture
             .Where(s => (s.IsPublic || publishBeta) &&
-                   s.Bid == bible.Id && 
+                   s.Bid == bible.Id &&
                    s.Mediafileid != null &&
-                   s.Passagetype == null) 
+                   s.Passagetype == null)
             .Include(s => s.Titlemediafile)
-            .Select(s => new Section(s.Sectionid, s.Sectionsequence, s.Sectiontitle,s.Planid, s.Level, s.Titlemediafile))
-            .Distinct().ToList();
+            .Select(s => new Section(s.Sectionid, s.Sectionsequence, s.Sectiontitle, s.Planid, s.Level, s.Titlemediafile))
+            .Distinct()];
 
     }
     protected IEnumerable<Passage> ReadyVernacularPassages(Bible bible, bool publishBeta, string? book)
     {
-        return _context.Vwpublishedscripture
+        return [.. _context.Vwpublishedscripture
             .Where(s => (publishBeta || s.IsPublic) &&
                         (book == null || s.Book == book) &&
                         (s.Bid == bible.Id) &&
@@ -122,7 +112,7 @@ public class BaseService
             .Include(s => s.Section)
             .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
             .Select(s => new Passage(s.Passageid, s.Sequencenum, s.Book, s.Reference, s.Sectionid, s.Sharedresource, s.Title, s.Startchapter, s.Startverse, s.Endchapter, s.Endverse, s.Passagetype))
-            .Distinct().ToList();
+            .Distinct()];
 
     }
     protected Sharedresource? GetNoteResource(int? sharedresourceid, int passageid)
@@ -134,12 +124,12 @@ public class BaseService
             : null;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
-    protected List<Section> BibleSections(Bible bible, string? book=null)
+    protected List<Section> BibleSections(Bible bible, string? book = null)
     {
-        return _context.Vwpublishedscripture
+        return [.. _context.Vwpublishedscripture
                 .Where(s => s.Bid == bible.Id && (book == null || s.Book == book))
                 .Select(s => new Section(s.Sectionid, s.Sectionsequence, s.Sectiontitle, s.Planid, s.Level, s.Titlemediafile))
-                .Distinct().ToList();
+                .Distinct()];
         //Does the above do the book correctly??
         //return _context.OrganizationBibles.Where(o => o.BibleId == bible.Id)
         //    .Join(_context.Organizations, o => o.OrganizationId, org => org.Id, (o, org) => org)
@@ -149,44 +139,44 @@ public class BaseService
         //                .Join(_context.Sections, p => p.SectionId, s => s.Id, (p, s) => s.PlanId).Contains(p.Id))), p => p.Id, pl => pl.ProjectId, (p, pl) => pl)
         //    .Join(_context.Sections.Where(s => !s.Archived), pl => pl.Id, s => s.PlanId, (pl, s) => s).Include(s => s.TitleMediafile);
     }
-    
+
     protected bool AnyMovements(List<Published> ready)
     {
-        return ready.Any(r=> r.Movementid != null);
+        return ready.Any(r => r.Movementid != null);
     }
-    protected List<MovementShort> ReadyMovements(List<Published> ready, int? movementId=null)
+    protected List<MovementShort> ReadyMovements(List<Published> ready, int? movementId = null)
     {
-        List<MovementShort> ret = new();
+        List<MovementShort> ret = [];
         IEnumerable<int?> movementids = ready.Where(p => p.Movementid is not null && (movementId == null || p.Movementid == movementId)).Select(r => r.Movementid).Distinct();
         if (!movementids.Any())
         {
-            List<SectionShort> sections = new ();
+            List<SectionShort> sections = [];
             IOrderedEnumerable<Section> readySections = ready.Where(r => r.Movementid is null && r.Level == SectionLevel.Section)
                 .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
                 .OrderBy(s => s.Sequencenum);
             readySections.ToList().ForEach(s => sections.Add(new SectionShort(s)));
-            ret.Add(new MovementShort(null, sections.ToArray()));
+            ret.Add(new MovementShort(null, [.. sections]));
         }
         else
         {
-            List<Section> movements = _context.Sections.Where(s => movementids.Contains(s.Id)).OrderBy(s => s.Sequencenum).ToList();
-            for (int ix = 0; ix < movements.Count(); ix++)
+            List<Section> movements = [.. _context.Sections.Where(s => movementids.Contains(s.Id)).OrderBy(s => s.Sequencenum)];
+            for (int ix = 0; ix < movements.Count; ix++)
             {
                 Section m = movements[ix];
-                List<SectionShort> sections = new ();
+                List<SectionShort> sections = [];
                 m.State = ix.ToString();
                 IOrderedEnumerable<Section> readySections  = ready.Where(r => r.Movementid == m.Id && r.Level == SectionLevel.Section)
                 .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
                 .OrderBy(s => s.Sequencenum);
                 readySections.ToList().ForEach(s => sections.Add(new SectionShort(s)));
-                ret.Add(new MovementShort(m, sections.ToArray()));
+                ret.Add(new MovementShort(m, [.. sections]));
             }
         }
         return ret;
     }
     protected Dictionary<MovementShort, IOrderedEnumerable<Section>> MovementSections(List<MovementShort> movements, List<Published> ready)
     {
-        Dictionary<MovementShort, IOrderedEnumerable<Section>> allmovements = new();
+        Dictionary<MovementShort, IOrderedEnumerable<Section>> allmovements = [];
         movements.ForEach(m => {
             allmovements.Add(m, ready.Where(r => r.Movementid == m.Id && r.Level == SectionLevel.Section)
                 .Select(r => new Section(r)).Distinct(new RecordEqualityComparer<Section>())
@@ -201,11 +191,11 @@ public class BaseService
             : new Audio(media,
                   _s3Service.ObjectUrl(media.PublishedAs));
     }
-    protected Image[] GetGraphicImages(int resourceid, string resourcetype)
+    protected Image [] GetGraphicImages(int resourceid, string resourcetype)
     {
-        string[] sizes = { "512", "1024" };
-        List<Image> images = new ();
-        List<Graphic> graphics = _context.Graphics.Where(g => g.ResourceId == resourceid && g.ResourceType == resourcetype).ToList();
+        string[] sizes = ["512", "1024"];
+        List<Image> images = [];
+        List<Graphic> graphics = []; // [.. _context.Graphics.Where(g => g.ResourceId == resourceid && g.ResourceType == resourcetype)];
         graphics.ForEach(graphics => {
             JObject info = JObject.Parse(graphics.Info ?? "{}");
             foreach (string size in sizes)
@@ -214,16 +204,16 @@ public class BaseService
                 string url = graphic? ["content"]?.Value<string>() ?? "";
                 if (graphic != null)
                 {
-                    images.Add(new Image(graphics.Id, 
+                    images.Add(new Image(graphics.Id,
                         size == "512" ? "Thumbnail" : "WEBP",
-                        graphics.DateUpdated??new DateTime(),
+                        graphics.DateUpdated ?? new DateTime(),
                         url.Split('/').Last(), url)
                     );
                 }
             };
         });
-        return images.ToArray();
-    }   
+        return [.. images];
+    }
     protected static string? GetDefault(string? defaultParams, string label)
     {
         dynamic tmp = JObject.Parse(defaultParams ?? "{}");

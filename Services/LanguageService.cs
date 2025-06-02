@@ -1,6 +1,6 @@
 ﻿using AkouoApi.Data;
 using AkouoApi.Models;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace AkouoApi.Services;
 
@@ -14,7 +14,14 @@ public class LanguageService(ILogger<LanguageService> logger,
         if (bible == null)
             return null;
         string? props = GetDefault(bible.PublishingData, "langProps");
-        return JObject.Parse(props ?? "{}").Value<string>("languageName");
+        if (props != null)
+        {
+            dynamic? j = JsonConvert.DeserializeObject(props);
+            while (j is string)
+                j = JsonConvert.DeserializeObject(j);
+            return j?.Value<string>("languageName");
+        }
+        return null;
     }
 
     private List<Language> GetLanguages(IEnumerable<Bible> readybibles)

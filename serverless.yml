@@ -31,7 +31,7 @@ functions:
   api:
     handler: AkouoApi
     name: AkouoApi-${self:custom.myStage}
-    timeout: 30
+    timeout: 29
     events:
        - http:
             path: /{proxy+}

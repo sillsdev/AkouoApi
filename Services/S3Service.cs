@@ -1,8 +1,7 @@
-﻿using Amazon.S3;
+﻿using AkouoApi.Models;
+using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Transfer;
 using Amazon.S3.Util;
-using AkouoApi.Models;
 using System.Net;
 using static AkouoApi.Utility.EnvironmentHelpers;
 
@@ -68,7 +67,7 @@ namespace AkouoApi.Services
             if (count > _localBuffer.Length)
             {
                 // A big read goes directly to S3
-                GetObjectRequest req = new() 
+                GetObjectRequest req = new()
                 {
                     BucketName = _bucket,
                     Key = _key,
@@ -82,7 +81,7 @@ namespace AkouoApi.Services
                 {
                     // We didn't get enough data to fill the request, so we're at the end of the file
                     Logger.LogInformation("partial content {r} {c}", read, count);
-                    read += resp.ResponseStream.ReadAsync(buffer, offset+read, count - read).Result;
+                    read += resp.ResponseStream.ReadAsync(buffer, offset + read, count - read).Result;
                 }
                 _offset += read;
                 return read;
@@ -107,7 +106,7 @@ namespace AkouoApi.Services
                     {
                         // We didn't get enough data to fill the request, so we're at the end of the file
                         Logger.LogInformation("partial content {r} {c}", read, count);
-                        read += resp.ResponseStream.ReadAsync(_localBuffer, read, _localBuffer.Length-read).Result;
+                        read += resp.ResponseStream.ReadAsync(_localBuffer, read, _localBuffer.Length - read).Result;
                     }
                     Logger.LogInformation("S3WrapperStream Fill Buffer offset {s} {e} {cl} returned {r}", req.ByteRange.Start, req.ByteRange.End, resp.ContentLength, read);
                     _localStart = _offset;
@@ -127,23 +126,16 @@ namespace AkouoApi.Services
         public override void Write(byte [] buffer, int offset, int count) { throw new NotImplementedException(); }
     }
 
-    public class S3Service : IS3Service
+    public class S3Service(IAmazonS3 client, ILoggerFactory loggerFactory) : IS3Service
     {
-        private readonly string PUBLISHED_BUCKET;
-        private readonly IAmazonS3 _client;
-        protected ILogger<S3Service> Logger { get; set; }
+        private readonly string PUBLISHED_BUCKET =  GetVarOrThrow("SIL_TR_PUBLISHED_BUCKET");
+        private readonly IAmazonS3 _client = client;
+        protected ILogger<S3Service> Logger { get; set; } = loggerFactory.CreateLogger<S3Service>();
 
-        public S3Service(IAmazonS3 client, ILoggerFactory loggerFactory)
-        {
-            _client = client;
-            PUBLISHED_BUCKET = GetVarOrThrow("SIL_TR_PUBLISHED_BUCKET");
-            this.Logger = loggerFactory.CreateLogger<S3Service>();
-        }
-        
         private static string ProperFolder(string folder)
         {
             //what else should be checked here?
-            if (folder.Length > 0 && folder.LastIndexOf("/") != folder.Length - 1)
+            if (folder.Length > 0 && folder.LastIndexOf('/') != folder.Length - 1)
                 folder += "/";
             return folder;
         }

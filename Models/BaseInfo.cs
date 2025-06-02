@@ -1,26 +1,28 @@
-﻿namespace AkouoApi.Models;
+﻿using System.Diagnostics;
+
+namespace AkouoApi.Models;
 
 public class BaseInfo
 {
     public BaseInfo(int id,
                     string title,
-                    Audio? audio, 
-                    Image [] graphics, 
+                    Audio? audio,
+                    Image [] graphics,
                     SectionShort [] sections,
                     SectionInfo [] sectionInfo,
                     IEnumerable<Published> ready)
     {
-        decimal sectionstart = sections.Any() ? sections.Min(s => s.GetSection().Sequencenum) : 0;
-        decimal sectionend = sections.Any() ? sections.Max(s => s.GetSection().Sequencenum) : 0;
+        decimal sectionstart = sections.Length != 0 ? sections.Min(s => s.GetSection().Sequencenum) : 0;
+        decimal sectionend = sections.Length != 0 ? sections.Max(s => s.GetSection().Sequencenum) : 0;
         int startchap = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null).Min(p => p.DestinationChapter()) ?? 0;
         int endchap = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null).Max(p => p.DestinationChapter()) ?? 0;
         int startverse = ready.Where(p => p.Sectionsequence == sectionstart && p.Passagetype == null && p.Startchapter == startchap).Min(p => p.Startverse) ?? 0;
         int endverse = ready.Where(p => p.Sectionsequence == sectionend && p.Passagetype == null && p.Endchapter == endchap).Max(p => p.Endverse) ?? 0;
-        Section_start = (int) sectionstart;
-        Section_end = (int) sectionend;
+        Section_start = (int)sectionstart;
+        Section_end = (int)sectionend;
         Verse_start = startverse;
         Verse_end = endverse;
-        Title_audio = audio != null ? new Audio [] { audio } : Array.Empty<Audio>();
+        Title_audio = audio != null ? [audio] : [];
         Images = graphics;
         Sections = sectionInfo;
         Title = title;
@@ -28,8 +30,8 @@ public class BaseInfo
     }
     public int Id { get; }
     public string Title { get; }
-    public Audio [] Title_audio { get; set; } = Array.Empty<Audio>();
-    public Image [] Images { get; set; } = Array.Empty<Image>();
+    public Audio [] Title_audio { get; set; } = [];
+    public Image [] Images { get; set; } = [];
     public int Section_start { get; set; }
     public int Section_end { get; set; }
     public int Verse_start { get; set; }
