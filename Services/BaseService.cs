@@ -195,7 +195,7 @@ public class BaseService(ILogger<LanguageService> logger,
     {
         string[] sizes = ["512", "1024"];
         List<Image> images = [];
-        List<Graphic> graphics = []; // [.. _context.Graphics.Where(g => g.ResourceId == resourceid && g.ResourceType == resourcetype)];
+        List<Graphic> graphics =  [.. _context.Graphics.Where(g => g.ResourceId == resourceid && g.ResourceType == resourcetype)];
         graphics.ForEach(graphics => {
             JObject info = JObject.Parse(graphics.Info ?? "{}");
             foreach (string size in sizes)
