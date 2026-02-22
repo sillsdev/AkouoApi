@@ -1,10 +1,6 @@
 ﻿namespace AkouoApi.Models;
 
-public class ChapterShort : BaseInfoShort
+public class ChapterShort(int id, int num, string title, SectionShort [] sectionInfo) : BaseInfoShort(id, title, sectionInfo)
 {
-    public ChapterShort(int id, int num, string title, SectionShort [] sectionInfo) : base(id, title, sectionInfo)
-    {
-        Chapter = num;
-    }
-    public int Chapter { get; }
+    public int Chapter { get; } = num;
 }

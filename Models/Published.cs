@@ -1,6 +1,6 @@
 ﻿namespace AkouoApi.Models;
 
-public abstract class Published: BaseModel
+public abstract class Published : BaseModel
 {
     public Published()
     {
@@ -11,6 +11,7 @@ public abstract class Published: BaseModel
     }
     public int Bid { get; set; }
     public int Planid { get; set; }
+    public int Projecttypeid { get; set; }
     public int? Movementid { get; set; }
     public int Sectionid { get; set; }
     public Section? Section { get; set; }
@@ -46,6 +47,11 @@ public abstract class Published: BaseModel
     public string? PublishedAs { get; set; }
     public decimal Filesize { get; set; }
     public DateTime Datecreated { get; set; }
+    public int? PassageImageId { get; set; }
+    public string? PassageImage { get; set; }
+    public DateTime? PassageImageDate { get; set; }
+    public string? DefaultParams { get; set; }
     public abstract int? DestinationChapter();
-        
+
+
 }

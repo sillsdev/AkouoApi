@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 
 namespace AkouoApi.Services;
+
 public class MovementMaps
 {
     public Dictionary<Section, Section> BySection { get; set; } = [];
@@ -191,33 +192,60 @@ public class BaseService(ILogger<LanguageService> logger,
             : new Audio(media,
                   _s3Service.ObjectUrl(media.PublishedAs));
     }
-    protected Image [] GetGraphicImages(int resourceid, string resourcetype)
+    protected Image [] GraphicInfo(string? imageInfo, int? imageid, DateTime? imagedate)
     {
-        string[] sizes = ["512", "1024"];
         List<Image> images = [];
-        List<Graphic> graphics =  [.. _context.Graphics.Where(g => g.ResourceId == resourceid && g.ResourceType == resourcetype)];
-        graphics.ForEach(graphics => {
-            JObject info = JObject.Parse(graphics.Info ?? "{}");
+        if (imageid != null)
+        {
+            string[] sizes = ["512", "1024"];
             foreach (string size in sizes)
             {
-                JToken? graphic = info [size];
+                JObject info = JObject.Parse(imageInfo ?? "{}");
+                JToken? graphic =  info [size];
                 string url = graphic? ["content"]?.Value<string>() ?? "";
                 if (graphic != null)
                 {
-                    images.Add(new Image(graphics.Id,
-                        size == "512" ? "Thumbnail" : "WEBP",
-                        graphics.DateUpdated ?? new DateTime(),
+                    images.Add(new Image(imageid ?? 0, //we already checked
+                        size,
+                        imagedate ?? new DateTime(),
                         url.Split('/').Last(), url)
                     );
                 }
-            };
-        });
+            }
+        }
         return [.. images];
+    }
+    protected Image [] PassageGraphic(Published noteOrChapter)
+    {
+        return GraphicInfo(noteOrChapter.PassageImage, noteOrChapter.PassageImageId, noteOrChapter.PassageImageDate);
+    }
+    protected Image [] GetGraphicImages(int resourceid, string resourcetype)
+    {
+        //Debug.WriteLine($"GGG resourceid {resourceid} type {resourcetype}");
+        Graphic? graphics =  _context.Graphics.Where(g => g.ResourceId == resourceid && g.ResourceType == resourcetype).FirstOrDefault();
+        if (graphics != null)
+        {
+            return GraphicInfo(graphics.Info, graphics.Id, graphics.DateUpdated);
+        }
+        ;
+        return [];
     }
     protected static string? GetDefault(string? defaultParams, string label)
     {
-        dynamic tmp = JObject.Parse(defaultParams ?? "{}");
-        return tmp.Value<string>(label);
+        if (string.IsNullOrEmpty(label))
+        {
+            return null;
+        }
+
+        JObject tmp = JObject.Parse(defaultParams ?? "{}");
+        return !tmp.TryGetValue(label, out JToken? value) || value == null
+            ? null
+            : value switch
+            {
+                JObject or JArray => value.ToString(),
+                JValue jValue => jValue.Value?.ToString(),
+                _ => value.ToString()
+            };
     }
 
     protected Passagetype NoteType()

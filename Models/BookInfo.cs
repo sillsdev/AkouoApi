@@ -1,14 +1,8 @@
 ﻿namespace AkouoApi.Models;
-public class BookInfo
+public class BookInfo(string testament, string testamentOrder, string bookGroup)
 {
-    public BookInfo(string testament, int testamentOrder, string bookGroup)
-    {
-        Testament = testament;
-        TestamentOrder = testamentOrder;
-        BookGroup = bookGroup;
-    }
-    public string Testament { get; set; } = "";
-    public int TestamentOrder { get; set; }
-    public string BookGroup { get; set; } = "";
+    public string Testament { get; set; } = testament;
+    public string TestamentOrder { get; set; } = testamentOrder;
+    public string BookGroup { get; set; } = bookGroup;
 }
 

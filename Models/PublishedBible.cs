@@ -27,5 +27,5 @@ public class PublishedBible : BaseModel
 public class VwPublishedBible : PublishedBible
 { }
 [Table("Vwobthelpsbibles")]
-public class VwHelpsBible: PublishedBible
+public class VwHelpsBible : PublishedBible
 { }

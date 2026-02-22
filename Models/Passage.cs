@@ -62,12 +62,12 @@ namespace AkouoApi.Models
         public string? Title { get; set; }
 
         public int SectionId { get; set; }
-        
+
         public virtual Section? Section { get; set; }
 
         public string? StepComplete { get; set; } //json
 
-        [ForeignKey(nameof(SharedResource))] 
+        [ForeignKey(nameof(SharedResource))]
         public int? SharedResourceId { get; set; }
 
         public Sharedresource? SharedResource { get; set; }
@@ -90,7 +90,7 @@ namespace AkouoApi.Models
                 return StartChapter != null && StartVerse != null && EndVerse != null;
             }
         }
-       
+
         public string Verses {
             get {
                 string? tmp = StartChapter != EndChapter

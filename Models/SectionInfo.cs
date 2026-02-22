@@ -1,29 +1,14 @@
-﻿using System.Diagnostics;
+﻿namespace AkouoApi.Models;
 
-namespace AkouoApi.Models;
-
-public class SectionInfo
+public class SectionInfo(Section s, Audio? audio, Image [] graphics, PassageInfo [] passageInfo, AudioNote [] audioNotes, bool isPublic)
 {
-    public SectionInfo(Section s, Audio? audio, Image [] graphics, PassageInfo [] passageInfo, AudioNote [] audioNotes, bool isPublic)
-    {
-
-        Id = s.Id;
-        Section = (int)s.Sequencenum;
-        Title = s.Name;
-        Title_audio = audio != null ? [audio] : [];
-        Images = graphics;
-        Passages = passageInfo;
-        Audio_notes = audioNotes;
-        IsPublic = isPublic;
-    }
-    public int Id { get; }
-    public int Section { get; set; }
-    public string Title { get; set; } = "";
-    public Audio [] Title_audio { get; set; } = [];
-    public Image [] Images { get; set; } = [];
-    public PassageInfo [] Passages { get; set; } = [];
+    public int Id { get; } = s.Id;
+    public int Section { get; set; } = (int)s.Sequencenum;
+    public string Title { get; set; } = s.Name;
+    public Audio [] Title_audio { get; set; } = audio != null ? [audio] : [];
+    public Image [] Images { get; set; } = graphics;
+    public PassageInfo [] Passages { get; set; } = passageInfo;
     public string Notes_title { get; set; } = "Notes";
-    public AudioNote [] Audio_notes { get; set; } = [];
-    public bool IsPublic { get; set; }
-
+    public AudioNote [] Audio_notes { get; set; } = audioNotes;
+    public bool IsPublic { get; set; } = isPublic;
 }

@@ -13,8 +13,8 @@ public class ChapterInfo(ChapterShort myShort,
     public int Chapter { get; set; } = myShort.Chapter;
     public int Movement_start { get; set; } = movements.FirstOrDefault()?.Id ?? 0;
     public int Movement_end { get; set; } = movements.LastOrDefault()?.Id ?? 0;
-    public int Passage_start { get; set; } = (int)passages.First().Id;
-    public int Passage_end { get; set; } = (int)passages.Last().Id;
+    public int Passage_start { get; set; } = (int)passages.First().Passageid;
+    public int Passage_end { get; set; } = (int)passages.Last().Passageid;
     public string Notes_title { get; set; } = "Notes";
     public List<AudioNote> Audio_notes { get; set; } = audio_notes;
 }
