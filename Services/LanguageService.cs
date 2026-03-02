@@ -44,9 +44,8 @@ public class LanguageService(ILogger<LanguageService> logger,
                                 audio != null ? [audio]: [],
                                 bibles);
             languages.Add(lang);
-        };
-
-        return languages;
+        }
+        return languages.OrderBy(l => l.Name).ToList();
     }
 
     public List<Language> GetLanguages(bool publishBeta)
