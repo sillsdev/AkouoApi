@@ -26,76 +26,59 @@ public class BaseService(ILogger<LanguageService> logger,
 
     //This gets the vernacular and notes and chapters
 
-    protected IQueryable<Published> Ready(bool scripture, bool vernacularOnly, bool publishBeta, int? bid = null, string? book = null)
+    protected IQueryable<Published> Ready(bool vernacularOnly, bool publishBeta, int? bid = null, string? book = null)
     {
-        return scripture ?
-             _context.Vwpublishedscripture
-             .Where(s => (s.IsPublic || publishBeta) &&
+        return
+             (IQueryable<Published>)_context.Published
+             .Where(s => (s.Ispublic || (publishBeta && s.Isbeta)) &&
                          (bid == null || s.Bid == bid) &&
                          (!vernacularOnly || s.Passagetype == null) &&
                          (book == null || s.Book == book))
                  .Include(s => s.Section)
                  .Include(s => s.Mediafile)
                  .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
-                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
-             : _context.Vwpublishedgeneral
-             .Where(s => (s.IsPublic || publishBeta) &&
-                         (bid == null || s.Bid == bid) &&
-                         (!vernacularOnly || s.Passagetype == null) &&
-                         (book == null || s.Book == book))
-                 .Include(s => s.Mediafile)
-                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
                  .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile);
-
     }
-    protected IQueryable<Published> HelpsReady(bool scripture, bool vernacularOnly, int? bid = null, string? book = null)
+    protected IQueryable<Published> HelpsReady(bool vernacularOnly, int? bid = null, string? book = null)
     {
-        return scripture ?
-            _context.Vwobthelpsscripture
+        return
+            (IQueryable<Published>)_context.Published
             .Where(s => (bid == null || s.Bid == bid) &&
                         (!vernacularOnly || s.Passagetype == null) &&
-                        (book == null || s.Book == book))
+                        (book == null || s.Book == book) && s.Isobthelps)
                 .Include(s => s.Section)
                 .Include(s => s.Mediafile)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
                 .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
 
-            : _context.Vwobthelpsgeneral
-            .Where(s => (bid == null || s.Bid == bid) &&
-                        (!vernacularOnly || s.Passagetype == null) &&
-                        (book == null || s.Book == book))
-                .Include(s => s.Section)
-                .Include(s => s.Mediafile)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.ArtifactCategory)
-                .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
+
         ;
     }
     protected IQueryable<Bible> ReadyBibles(bool publishBeta, string? bibleId = null)
     {
-        return _context.Vwpublishedbibles
-                    .Where(s => (publishBeta || s.HasPublic) &&
+        return _context.Publishedbibles
+                    .Where(s => ((publishBeta && s.HasBeta) || s.HasPublic) &&
                            (bibleId == null || s.BibleId == bibleId))
                     .Include(s => s.Isomediafile)
                     .Include(s => s.Biblemediafile)
-                    .Select(s => new Bible(s.Id, s.BibleId, s.Iso, s.Biblename, s.Description, s.Publishingdata, s.Isomediafile, s.Biblemediafile))
-                    ;
+                    .Select(s => new Bible(s.Id, s.BibleId, s.Iso, s.Biblename, s.Description, s.Group1, s.Group2, s.Publishingdata, s.Isomediafile, s.Biblemediafile));
     }
     protected IQueryable<Bible> HelpsReadyBibles(string? bibleId = null)
     {
-        IQueryable<Bible> x = _context.Vwobthelpsbibles
-                    .Where(s => bibleId == null || s.BibleId == bibleId)
+        IQueryable<Bible> x = _context.Publishedbibles
+                    .Where(s => (bibleId == null || s.BibleId == bibleId) && s.HasObtHelps)
                     .Include(s => s.Isomediafile)
                     .Include(s => s.Biblemediafile)
-                    .Select(s => new Bible(s.Id, s.BibleId, s.Iso, s.Biblename, s.Description, s.Publishingdata, s.Isomediafile, s.Biblemediafile));
+                    .Select(s => new Bible(s.Id, s.BibleId, s.Iso, s.Biblename, s.Description, s.Group1, s.Group2, s.Publishingdata, s.Isomediafile, s.Biblemediafile));
         return x;
     }
 
     protected IEnumerable<Section> ReadyVernacularSections(Bible bible, bool publishBeta)
     {
-        return [.. _context.Vwpublishedscripture
-            .Where(s => (s.IsPublic || publishBeta) &&
+        return [.. _context.Published
+            .Where(s => (s.Ispublic || (publishBeta && s.Isbeta)) &&
                    s.Bid == bible.Id &&
-                   s.Mediafileid != null &&
+                   //s.Mediafileid != null &&
                    s.Passagetype == null)
             .Include(s => s.Titlemediafile)
             .Select(s => new Section(s.Sectionid, s.Sectionsequence, s.Sectiontitle, s.Planid, s.Level, s.Titlemediafile))
@@ -104,11 +87,11 @@ public class BaseService(ILogger<LanguageService> logger,
     }
     protected IEnumerable<Passage> ReadyVernacularPassages(Bible bible, bool publishBeta, string? book)
     {
-        return [.. _context.Vwpublishedscripture
-            .Where(s => (publishBeta || s.IsPublic) &&
+        return [.. _context.Published
+            .Where(s => (s.Ispublic || (publishBeta && s.Isbeta)) &&
                         (book == null || s.Book == book) &&
                         (s.Bid == bible.Id) &&
-                        s.Mediafileid != null &&
+                        //s.Mediafileid != null &&
                         s.Passagetype == null)
             .Include(s => s.Section)
             .Include(s => s.Sharedresource).ThenInclude(r => r!.TitleMediafile)
@@ -127,7 +110,7 @@ public class BaseService(ILogger<LanguageService> logger,
     }
     protected List<Section> BibleSections(Bible bible, string? book = null)
     {
-        return [.. _context.Vwpublishedscripture
+        return [.. _context.Published
                 .Where(s => s.Bid == bible.Id && (book == null || s.Book == book))
                 .Select(s => new Section(s.Sectionid, s.Sectionsequence, s.Sectiontitle, s.Planid, s.Level, s.Titlemediafile))
                 .Distinct()];
@@ -217,7 +200,7 @@ public class BaseService(ILogger<LanguageService> logger,
     }
     protected Image [] PassageGraphic(Published noteOrChapter)
     {
-        return GraphicInfo(noteOrChapter.PassageImage, noteOrChapter.PassageImageId, noteOrChapter.PassageImageDate);
+        return GraphicInfo(noteOrChapter.Passageimage, noteOrChapter.Passageimageid, noteOrChapter.Passageimagedate);
     }
     protected Image [] GetGraphicImages(int resourceid, string resourcetype)
     {

@@ -5,7 +5,7 @@ namespace AkouoApi.Models;
 public partial class Book : BaseModel, IComparable<Book>
 {
     private string extras = "extras";
-    private readonly Dictionary<string, BookInfo> BookInfo = new ()
+    private static readonly Dictionary<string, BookInfo> BookInfoMap = new ()
     {
         {  "GEN", new ("OT", "A01", "The Law" ) },
         {  "EXO", new ("OT", "A02", "The Law" ) },
@@ -133,8 +133,15 @@ public partial class Book : BaseModel, IComparable<Book>
 
     private BookInfo? GetBookInfo()
     {
-        BookInfo.TryGetValue(Book_id ?? "", out BookInfo? info);
+        BookInfoMap.TryGetValue(Book_id ?? "", out BookInfo? info);
         return info;
+    }
+
+    public static string GetBookOrder(string? bookId)
+    {
+        return BookInfoMap.TryGetValue(bookId ?? "", out BookInfo? info)
+            ? info.TestamentOrder
+            : (bookId ?? "");
     }
     public required string Bible_id { get; set; }
     public required string Book_id { get; set; }  //"GEN"
@@ -158,7 +165,7 @@ public partial class Book : BaseModel, IComparable<Book>
     }
     public string Book_order { // "A01"
         get {
-            return GetBookInfo()?.TestamentOrder ?? Book_id;
+            return GetBookOrder(Book_id);
         }
     }
     public string? Book_group { // "The Law"

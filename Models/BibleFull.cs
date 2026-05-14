@@ -1,19 +1,20 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.Reflection;
 
 namespace AkouoApi.Models;
 
 public class BibleFull : BibleShort
 {
-    public BibleFull(Bible bible, Audio [] audio): base(bible, audio)
+    public BibleFull(Bible bible, Audio [] audio) : base(bible, audio)
     {
         Description = bible.Description;
+        Group1 = bible.Group1;
+        Group2 = bible.Group2;
         if (bible.PublishingData != null)
         {
             try
             {
                 dynamic root = JObject.Parse(bible.PublishingData);
-                Alphabet = root["alphabet"]?.Value;
+                Alphabet = root ["alphabet"]?.Value;
                 Copyright = root ["copyright"]?.Value;
                 Mark = root ["mark"]?.Value;
                 NotesTitle = root ["noteLabel"]?.Value ?? "Notes";
@@ -33,9 +34,9 @@ public class BibleFull : BibleShort
             catch (Exception)
             { //leave them null;
             }
-        }   
+        }
     }
-    public string? Copyright { get; set; }  
+    public string? Copyright { get; set; }
     public string? Description { get; set; }
     public string? Alphabet { get; set; }
     public string? Mark { get; set; }
@@ -44,9 +45,12 @@ public class BibleFull : BibleShort
     public string? Language { get; set; }
     public string? Date { get; set; }
     public string? Country { get; set; }
+    public string Group1 { get; set; }
+    public string Group2 { get; set; }
     public string? Attributions { get; set; }
     public string? Links { get; set; }
     public string? Filesets { get; set; }
+
     public string? Vname => $"{Name}";
     public string? Vdescription => $"{Description}";
 

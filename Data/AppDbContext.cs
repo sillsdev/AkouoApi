@@ -17,14 +17,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Passagetype> Passagetypes => Set<Passagetype>();
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Project> Projects => Set<Project>();
-    public DbSet<PublishedChapter> Vwpublishedchapters => Set<PublishedChapter>();
-    public DbSet<VwHelpsBible> Vwobthelpsbibles => Set<VwHelpsBible>();
-    public DbSet<VwPublishedBible> Vwpublishedbibles => Set<VwPublishedBible>();
-    public DbSet<VwOBTHelpsGeneral> Vwobthelpsgeneral => Set<VwOBTHelpsGeneral>();
-    public DbSet<VwOBTHelpsScripture> Vwobthelpsscripture => Set<VwOBTHelpsScripture>();
-    public DbSet<VwPublishedGeneral> Vwpublishedgeneral => Set<VwPublishedGeneral>();
-    public DbSet<VwPublishedScripture> Vwpublishedscripture => Set<VwPublishedScripture>();
-
+    public DbSet<PublishedBible> Publishedbibles => Set<PublishedBible>();
+    public DbSet<Published> Published => Set<Published>();
+    public DbSet<PublishedGroup> Publishedgroups => Set<PublishedGroup>();
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Sharedresource> Sharedresources => Set<Sharedresource>();
     #endregion
@@ -122,6 +117,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     }
 
 }
+
+
+
+
+
+
 
 
 

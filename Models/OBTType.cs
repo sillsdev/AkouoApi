@@ -10,7 +10,8 @@ public enum OBTTypeEnum
     audio_note,
     appendix,
     extra,
-    title
+    title,
+    section
 };
 
 public class OBTType : BaseModel, IComparable<OBTType>
@@ -24,7 +25,7 @@ public class OBTType : BaseModel, IComparable<OBTType>
     private OBTTypeEnum Type { get; set; }
 
     public string Obt_type { get { return Type.ToString(); } }
-    public string Description { get { return OBTTypeDescription [((int)Type)-1];  } }
+    public string Description { get { return OBTTypeDescription [((int)Type) - 1]; } }
 
     public int CompareTo(OBTType? compare)
     {

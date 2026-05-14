@@ -28,6 +28,7 @@ public static class BackendServiceExtension
     {
         services.AddScoped<BibleService>();
         services.AddScoped<BookService>();
+        services.AddScoped<GroupService>();
         services.AddScoped<LanguageService>();
         services.AddScoped<MediafileService>();
         services.AddSingleton<IS3Service, S3Service>();
