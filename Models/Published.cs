@@ -10,10 +10,11 @@ public class Published
     public int Passageid { get; set; }
     public int Bid { get; set; }
     public string Bibleid { get; set; } = "";
-    public int? Sr { get; set; }
+    public DateTime BibleDateupdated { get; set; }
     public int Organizationid { get; set; }
     public bool Isscripture { get; set; }
     public int? Movementid { get; set; }
+    public DateTime MovementDateupdated { get; set; }
     public int Planid { get; set; }
     public int Sectionid { get; set; }
     public Section? Section { get; set; }
@@ -27,6 +28,7 @@ public class Published
     public bool Ispublic { get; set; }
     public bool Isbeta { get; set; }
     public bool Isobthelps { get; set; }
+    public DateTime SectionDateupdated { get; set; }
     public int? Sectionimageid { get; set; }
     public DateTime? Sectionimagedate { get; set; }
     public string? Sectionimage { get; set; }
@@ -38,6 +40,7 @@ public class Published
     public int? Startverse { get; set; }
     public int? Endchapter { get; set; }
     public int? Endverse { get; set; }
+    public DateTime PassageDateupdated { get; set; }
     public string? Passagetype { get; set; }
     public string Bookname { get; set; } = "";
     public int? Bookmediafileid { get; set; }

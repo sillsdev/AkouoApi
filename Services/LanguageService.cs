@@ -26,7 +26,7 @@ public class LanguageService(ILogger<LanguageService> logger,
 
     private List<Language> GetLanguages(IEnumerable<Bible> readybibles)
     {
-        List<string> isos = readybibles.Select(o=> o.Iso??"").Distinct().ToList();
+        List<string> isos = [.. readybibles.Select(o=> o.Iso??"").Distinct()];
         List<Language> languages = [];
         for (int ix = 0; ix < isos.Count; ix++)
         {

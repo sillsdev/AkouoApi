@@ -4,7 +4,7 @@ using AkouoApi.Services;
 using Amazon.Lambda.AspNetCoreServer;
 using Amazon.Lambda.Core;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using static AkouoApi.Utility.Utils;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -55,10 +55,11 @@ app.MapGet("/hello", (HttpContext httpContext) => {
 });
 app.MapPatch("/refresh", async (HttpContext httpContext, ILogger<Program> _logger, BibleService _service) => {
     ILambdaContext? lambdaContext = httpContext.Items[AbstractAspNetCoreFunction.LAMBDA_CONTEXT] as ILambdaContext;
-    lambdaContext?.Logger.LogInformation("Hello from ILambdaContext!");
+    lambdaContext?.Logger.LogInformation("Refresh!");
     await _service.RefreshMaterializedAsync();
     return "Views Refreshed";
 });
+
 #region Bibles
 app.MapGet("/languages", ([FromQuery(Name = "beta")] string? beta,
                            ILogger<Program> _logger, LanguageService _service) =>
@@ -187,6 +188,16 @@ app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}/section/{section}",
                                                             ILogger<Program> _logger, BookService _service) =>
                 new ApiResponse(_service.GetBibleBookChapters(bibleId, book_id ?? book, BoolParse(beta), true, chapter, section))
 ).WithName("GetBibleBookChapterSection").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/since/{lastdownload}", (string bibleId, string lastdownload,
+                           ILogger<Program> _logger, BibleService _service) =>
+        new ApiResponse(_service.GetSince(lastdownload, bibleId))
+).WithName("GetSinceBible").Produces<ApiResponse>(200);
+
+app.MapGet("/since/{lastdownload}", (string lastdownload,
+                           ILogger<Program> _logger, BibleService _service) =>
+        new ApiResponse(_service.GetSince(lastdownload, null))
+).WithName("GetSince").Produces<ApiResponse>(200);
 
 #endregion
 

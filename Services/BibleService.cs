@@ -1,6 +1,7 @@
 ﻿using AkouoApi.Data;
 using AkouoApi.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace AkouoApi.Services;
 
@@ -187,5 +188,40 @@ public class BibleService(ILogger<LanguageService> logger,
         }
         else
             throw (new Exception("Bible not found"));
+    }
+    public List<UpdatedInfo> GetSince(string dateSince, string? bibleId)
+    {
+        if (!DateTime.TryParse(dateSince, CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime parsed))
+        {
+            throw new ArgumentException($"'{dateSince}' is not a valid UTC date/time", nameof(dateSince));
+        }
+        DateTime since = DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+        IQueryable<Published> all;
+        Bible? bible = null;
+        if (bibleId != null)
+        {
+            bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw (new Exception("Bible not found"));
+            all = _context.Published.Where(p => p.Bid == bible.Id);
+        }
+        else
+            all = _context.Published;
+
+        List<UpdatedInfo> updated = [];
+        IQueryable<UpdatedInfo> bibles = all.Where(p => p.BibleDateupdated >= since).Select(p => new { p.Bid, p.Bibleid }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.bible.ToString(), p.Bid, p.Bibleid));
+        IQueryable<UpdatedInfo> movements = all.Where(p => p.Movementid != null && p.MovementDateupdated >= since).Select(p => new { Id = p.Movementid ?? 0, p.Bibleid }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.movement.ToString(), p.Id, p.Bibleid));
+        IQueryable<UpdatedInfo> sections = all.Where(p => p.SectionDateupdated >= since).Select(p => new { Id = p.Sectionid, p.Bibleid }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.section.ToString(), p.Id, p.Bibleid));
+        IQueryable<UpdatedInfo> scriptures = all.Where(p => p.PassageDateupdated >= since).Select(p => new { Id = p.Passageid, p.Bibleid }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.scripture.ToString(), p.Id, p.Bibleid));
+
+        updated.AddRange(bibles);
+        updated.AddRange(movements);
+        updated.AddRange(sections);
+        updated.AddRange(scriptures);
+
+        return updated;
     }
 }

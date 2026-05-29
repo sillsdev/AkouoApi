@@ -13,7 +13,7 @@ configValidationMode: warn
 
 provider:
   name: aws
-  runtime: dotnet8
+  runtime: dotnet10
   region: us-east-1
   stage: qa     #cli build params will override this!!
   profile: transcriber  #aws credentials file 
@@ -25,7 +25,7 @@ provider:
     SIL_TR_PUBLISHED_BUCKET: ${file(./serverless.env.yml):${self:custom.myStage}.SIL_TR_PUBLISHED_BUCKET}
 
 package:
-  artifact: bin/release/net8.0/deploy-package_${self:custom.myStage}.zip
+  artifact: bin/release/net10.0/deploy-package_${self:custom.myStage}.zip
 
 functions:
   api:

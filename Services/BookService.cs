@@ -212,7 +212,11 @@ public class BookService(ILogger<LanguageService> logger,
         }
         Published? first = readyPassages.FirstOrDefault();
         Image [] sectiongraphic = [];
-        if (first != null)
+        if (s.Level is SectionLevel.Movement or SectionLevel.Book)
+        {
+            sectiongraphic = GetGraphicImages(s.Id, "section");
+        }
+        else if (first != null)
             sectiongraphic = GraphicInfo(first.Sectionimage, first.Sectionimageid, first.Sectionimagedate);
         foreach (Published p in readyPassages)
         {
