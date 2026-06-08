@@ -14,7 +14,7 @@ public class Published
     public int Organizationid { get; set; }
     public bool Isscripture { get; set; }
     public int? Movementid { get; set; }
-    public DateTime MovementDateupdated { get; set; }
+    public DateTime? MovementDateupdated { get; set; }
     public int Planid { get; set; }
     public int Sectionid { get; set; }
     public Section? Section { get; set; }
@@ -45,7 +45,7 @@ public class Published
     public string Bookname { get; set; } = "";
     public int? Bookmediafileid { get; set; }
     public int? Bookid { get; set; }
-    public string Altname { get; set; } = "";
+    public string? Altname { get; set; } = "";
     public int? Altbookmediafileid { get; set; }
     public int? Altbookid { get; set; }
     public int? Sharedresourceid { get; set; }

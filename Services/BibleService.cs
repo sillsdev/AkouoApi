@@ -210,12 +210,12 @@ public class BibleService(ILogger<LanguageService> logger,
         List<UpdatedInfo> updated = [];
         IQueryable<UpdatedInfo> bibles = all.Where(p => p.BibleDateupdated >= since).Select(p => new { p.Bid, p.Bibleid }).Distinct()
             .Select(p => new UpdatedInfo(OBTTypeEnum.bible.ToString(), p.Bid, p.Bibleid));
-        IQueryable<UpdatedInfo> movements = all.Where(p => p.Movementid != null && p.MovementDateupdated >= since).Select(p => new { Id = p.Movementid ?? 0, p.Bibleid }).Distinct()
-            .Select(p => new UpdatedInfo(OBTTypeEnum.movement.ToString(), p.Id, p.Bibleid));
-        IQueryable<UpdatedInfo> sections = all.Where(p => p.SectionDateupdated >= since).Select(p => new { Id = p.Sectionid, p.Bibleid }).Distinct()
-            .Select(p => new UpdatedInfo(OBTTypeEnum.section.ToString(), p.Id, p.Bibleid));
-        IQueryable<UpdatedInfo> scriptures = all.Where(p => p.PassageDateupdated >= since).Select(p => new { Id = p.Passageid, p.Bibleid }).Distinct()
-            .Select(p => new UpdatedInfo(OBTTypeEnum.scripture.ToString(), p.Id, p.Bibleid));
+        IQueryable<UpdatedInfo> movements = all.Where(p => p.Movementid != null && p.MovementDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.Bookid, p.Book, p.Movementid }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.movement.ToString(), p.Movementid??0, p.Bibleid, p.Bookid, p.Book, p.Movementid));
+        IQueryable<UpdatedInfo> sections = all.Where(p => p.SectionDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.section.ToString(), p.Sectionid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid));
+        IQueryable<UpdatedInfo> scriptures = all.Where(p => p.PassageDateupdated >= since)
+            .Select(p => new UpdatedInfo(OBTTypeEnum.scripture.ToString(), p.Passageid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid));
 
         updated.AddRange(bibles);
         updated.AddRange(movements);
