@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<PublishedGroup> Publishedgroups => Set<PublishedGroup>();
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Sharedresource> Sharedresources => Set<Sharedresource>();
+    public DbSet<PublishedDeleted> Publisheddeleteds => Set<PublishedDeleted>();
     #endregion
     public static void LowerCaseDB(ModelBuilder builder)
     {

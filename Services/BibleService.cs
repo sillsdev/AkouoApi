@@ -14,6 +14,56 @@ public class BibleService(ILogger<LanguageService> logger,
     {
         await _context.Database.ExecuteSqlRawAsync("SELECT refreshmaterialized()");
     }
+
+    public List<UpdatedInfo> GetDeletedSince(string dateSince, string? bibleId, bool publishBeta = false)
+    {
+        if (!DateTime.TryParse(dateSince, CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime parsed))
+        {
+            throw new ArgumentException($"'{dateSince}' is not a valid UTC date/time", nameof(dateSince));
+        }
+        DateTime since = DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+
+        IQueryable<PublishedDeleted> all = _context.Publisheddeleteds.Where(d => (publishBeta && d.Visibility == "beta") || d.Visibility == "public");
+        PublishedBible? bible = null;
+        if (bibleId != null)
+        {
+            bible = _context.Publishedbibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw (new Exception("Bible not found"));
+            all = all.Where(p => p.Bid == bible.Id);
+        }
+
+        List<UpdatedInfo> updated = new List<UpdatedInfo>();
+
+        IQueryable<PublishedDeleted> deletions = all.Where(d => d.Deleted_at >= since);
+
+        IQueryable<UpdatedInfo> chapters = deletions.Where(d => d.Chapter != null && d.Passageid == null)
+            .Select(d => new UpdatedInfo(OBTTypeEnum.chapter.ToString(), d.Chapter ?? 0, d.Bibleid, d.Deleted_at, d.Bookid, d.Book, d.Movementid, d.Sectionid));
+
+        IQueryable<UpdatedInfo> movements = deletions.Where(d => d.Movementid != null && d.Sectionid == null)
+            .Select(d => new UpdatedInfo(OBTTypeEnum.movement.ToString(), d.Movementid ?? 0, d.Bibleid, d.Deleted_at, d.Bookid, d.Book, d.Movementid));
+
+        IQueryable<UpdatedInfo> sections = deletions.Where(d => d.Sectionid != null && d.Passageid == null)
+            .Select(d => new UpdatedInfo(OBTTypeEnum.section.ToString(), d.Sectionid ?? 0, d.Bibleid, d.Deleted_at, d.Bookid, d.Book, d.Movementid, d.Sectionid));
+
+        IQueryable<UpdatedInfo> scriptures = deletions.Where(d => d.Passageid != null && (d.Passagetype ?? "") == "")
+            .Select(d => new UpdatedInfo(OBTTypeEnum.scripture.ToString(), d.Passageid ?? 0, d.Bibleid, d.Deleted_at, d.Bookid, d.Book, d.Movementid, d.Sectionid));
+
+        IQueryable<UpdatedInfo> notes = deletions.Where(d => d.Passageid != null && (d.Passagetype ?? "") == "NOTE")
+            .Select(d => new UpdatedInfo(OBTTypeEnum.audio_note.ToString(), d.Passageid ?? 0, d.Bibleid, d.Deleted_at, d.Bookid, d.Book, d.Movementid, d.Sectionid));
+
+
+        IQueryable<UpdatedInfo> bibles = deletions.Where(d => d.Movementid == null && d.Sectionid == null && d.Passageid == null && d.Chapter == null)
+            .Select(d => new UpdatedInfo(OBTTypeEnum.bible.ToString(), d.Bid, d.Bibleid, d.Deleted_at));
+
+        updated.AddRange(bibles);
+        updated.AddRange(chapters);
+        updated.AddRange(movements);
+        updated.AddRange(sections);
+        updated.AddRange(scriptures);
+        updated.AddRange(notes);
+
+        return updated;
+    }
     private List<BibleShort> ShortBibles(List<Bible> bibles)
     {
         List<BibleShort> sb = [];
@@ -189,7 +239,7 @@ public class BibleService(ILogger<LanguageService> logger,
         else
             throw (new Exception("Bible not found"));
     }
-    public List<UpdatedInfo> GetSince(string dateSince, string? bibleId)
+    public List<UpdatedInfo> GetSince(string dateSince, string? bibleId, bool publishBeta = false)
     {
         if (!DateTime.TryParse(dateSince, CultureInfo.InvariantCulture,
                 DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime parsed))
@@ -197,30 +247,32 @@ public class BibleService(ILogger<LanguageService> logger,
             throw new ArgumentException($"'{dateSince}' is not a valid UTC date/time", nameof(dateSince));
         }
         DateTime since = DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
-        IQueryable<Published> all;
+        IQueryable<Published> all = _context.Published.Where(p => (publishBeta && p.Isbeta) || p.Ispublic);
         Bible? bible = null;
         if (bibleId != null)
         {
             bible = _context.Bibles.Where(b => b.BibleId == bibleId).FirstOrDefault() ?? throw (new Exception("Bible not found"));
-            all = _context.Published.Where(p => p.Bid == bible.Id);
+            all = all.Where(p => p.Bid == bible.Id);
         }
-        else
-            all = _context.Published;
 
         List<UpdatedInfo> updated = [];
-        IQueryable<UpdatedInfo> bibles = all.Where(p => p.BibleDateupdated >= since).Select(p => new { p.Bid, p.Bibleid }).Distinct()
-            .Select(p => new UpdatedInfo(OBTTypeEnum.bible.ToString(), p.Bid, p.Bibleid));
-        IQueryable<UpdatedInfo> movements = all.Where(p => p.Movementid != null && p.MovementDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.Bookid, p.Book, p.Movementid }).Distinct()
-            .Select(p => new UpdatedInfo(OBTTypeEnum.movement.ToString(), p.Movementid??0, p.Bibleid, p.Bookid, p.Book, p.Movementid));
-        IQueryable<UpdatedInfo> sections = all.Where(p => p.SectionDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid }).Distinct()
-            .Select(p => new UpdatedInfo(OBTTypeEnum.section.ToString(), p.Sectionid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid));
-        IQueryable<UpdatedInfo> scriptures = all.Where(p => p.PassageDateupdated >= since)
-            .Select(p => new UpdatedInfo(OBTTypeEnum.scripture.ToString(), p.Passageid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid));
-
+        IQueryable<UpdatedInfo> bibles = all.Where(p => p.BibleDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.BibleDateupdated }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.bible.ToString(), p.Bid, p.Bibleid, p.BibleDateupdated));
+#pragma warning disable CS8629 // Nullable value type may be null.
+        IQueryable<UpdatedInfo> movements = all.Where(p => p.Movementid != null && p.MovementDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.MovementDateupdated }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.movement.ToString(), p.Movementid??0, p.Bibleid, (DateTime)p.MovementDateupdated, p.Bookid, p.Book, p.Movementid));
+#pragma warning restore CS8629 // Nullable value type may be null.
+        IQueryable<UpdatedInfo> sections = all.Where(p => p.SectionDateupdated >= since).Select(p => new { p.Bid, p.Bibleid, p.Bookid, p.Book, p.Movementid, p.Sectionid, p.SectionDateupdated }).Distinct()
+            .Select(p => new UpdatedInfo(OBTTypeEnum.section.ToString(), p.Sectionid, p.Bibleid, p.SectionDateupdated, p.Bookid, p.Book, p.Movementid, p.Sectionid));
+        IQueryable<UpdatedInfo> scriptures = all.Where(p => p.PassageDateupdated >= since && p.Passagetype != NOTE)
+            .Select(p => new UpdatedInfo(OBTTypeEnum.scripture.ToString(), p.Passageid, p.Bibleid,p.PassageDateupdated, p.Bookid, p.Book, p.Movementid, p.Sectionid));
+        IQueryable<UpdatedInfo> notes = all.Where(p => p.PassageDateupdated >= since && p.Passagetype == NOTE)
+            .Select(p => new UpdatedInfo(OBTTypeEnum.audio_note.ToString(), p.Passageid, p.Bibleid,p.PassageDateupdated, p.Bookid, p.Book, p.Movementid, p.Sectionid));
         updated.AddRange(bibles);
         updated.AddRange(movements);
         updated.AddRange(sections);
         updated.AddRange(scriptures);
+        updated.AddRange(notes);
 
         return updated;
     }

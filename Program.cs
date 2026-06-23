@@ -190,14 +190,25 @@ app.MapGet("/bibles/{bibleId}/{book}/chapters/{chapter}/section/{section}",
 ).WithName("GetBibleBookChapterSection").Produces<ApiResponse>(200);
 
 app.MapGet("/bibles/{bibleId}/since/{lastdownload}", (string bibleId, string lastdownload,
+                            [FromQuery(Name = "beta")] string? beta,
                            ILogger<Program> _logger, BibleService _service) =>
-        new ApiResponse(_service.GetSince(lastdownload, bibleId))
+        new ApiResponse(_service.GetSince(lastdownload, bibleId, BoolParse(beta)))
 ).WithName("GetSinceBible").Produces<ApiResponse>(200);
 
-app.MapGet("/since/{lastdownload}", (string lastdownload,
+app.MapGet("/since/{lastdownload}", (string lastdownload, [FromQuery(Name = "beta")] string? beta,
                            ILogger<Program> _logger, BibleService _service) =>
-        new ApiResponse(_service.GetSince(lastdownload, null))
+        new ApiResponse(_service.GetSince(lastdownload, null, BoolParse(beta)))
 ).WithName("GetSince").Produces<ApiResponse>(200);
+
+app.MapGet("/bibles/{bibleId}/deletedsince/{lastdownload}", (string bibleId, string lastdownload, [FromQuery(Name = "beta")] string? beta,
+                           ILogger<Program> _logger, BibleService _service) =>
+        new ApiResponse(_service.GetDeletedSince(lastdownload, bibleId, BoolParse(beta)))
+).WithName("GetDeletedSinceBible").Produces<ApiResponse>(200);
+
+app.MapGet("/deletedsince/{lastdownload}", (string lastdownload, [FromQuery(Name = "beta")] string? beta,
+                           ILogger<Program> _logger, BibleService _service) =>
+        new ApiResponse(_service.GetDeletedSince(lastdownload, null, BoolParse(beta)))
+).WithName("GetDeletedSince").Produces<ApiResponse>(200);
 
 #endregion
 
